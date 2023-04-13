@@ -1,2 +1,6 @@
 /.vscode/
 /target/
+/src/caya/Lexer.java
+/src/caya/Lexer.java~
+/src/caya/Parser.java
+/src/caya/Parser.output
