@@ -85,4 +85,5 @@ public class ParserHelper {
   Node call(Location loc, Node fn, List<Node> args) { return new Call(loc, fn, args); }
   Node item(Location loc, Node expr, List<Node> items) { return new Item(loc, expr, items); }
   Seq seq(Location loc, List<Node> exprs) { return new Seq(loc, exprs); }
+  Node assign(Location loc, Node pattern, Node value) { return new Assign(loc, pattern, value); }
 }

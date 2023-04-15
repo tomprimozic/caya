@@ -28,11 +28,11 @@
 %token <String> IDENT INTEGER STRING ERROR
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
-%token DOT "." COMMA "," SEMICOLON ";"
+%token DOT "." COMMA "," SEMICOLON ";" ASSIGN "="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]"
 
 
-%type <Node> expr term
+%type <Node> statement expr term
 %type <List<Node>> exprs0 exprs1 statements0 statements1
 
 %%
@@ -45,8 +45,12 @@ statements0:
   | statements1
 
 statements1:
-    expr                            { $$ = list($1); }
-  | statements1 ";" expr            { $$ = list($1, $3); }
+    statement                       { $$ = list($1); }
+  | statements1 ";" statement       { $$ = list($1, $3); }
+
+statement:
+    expr
+  | expr "=" expr                   { $$ = assign(@$, $1, $3); }
 
 expr:
   term

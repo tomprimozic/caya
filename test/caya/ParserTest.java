@@ -36,7 +36,11 @@ public class ParserTest {
       arguments("a.push(1, 8)", "Call[Field[Ident[a], push], [Int[1], Int[8]]]"),
       arguments("_", "Ident[_]"),
       arguments("x._", "Field[Ident[x], _]"),
-      arguments("x[0]", "Item[Ident[x], [Int[0]]]")
+      arguments("x[0]", "Item[Ident[x], [Int[0]]]"),
+      arguments("x = 1", "Assign[Ident[x], Int[1]]"),
+      arguments("4; z = true; 'm'", "Seq[[Int[4], Assign[Ident[z], Bool[true]], Str[m]]]"),
+      arguments("f(x) = y", "Assign[Call[Ident[f], [Ident[x]]], Ident[y]]"),
+      arguments("x[0] = 1", "Assign[Item[Ident[x], [Int[0]]], Int[1]]")
     );
   }
 

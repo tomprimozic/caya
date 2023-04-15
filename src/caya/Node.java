@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import caya.Parser.Location;
 
-public interface Node {
+sealed public interface Node {
   final static Pattern remove_loc = Pattern.compile("loc=Pos\\[pos=\\d+\\](\\-Pos\\[pos=\\d+\\])?, ");
   final static Pattern remove_field_names = Pattern.compile("(?<=\\[|, )[_a-z]+=");
   public static String show(Node n) {
@@ -28,4 +28,5 @@ public interface Node {
   record Item(Location loc, Node expr, List<Node> items) implements Node {}
   record Call(Location loc, Node fn, List<Node> args) implements Node {}
   record Seq(Location loc, List<Node> exprs) implements Node {}
+  record Assign(Location loc, Node pattern, Node value) implements Node {}
 }

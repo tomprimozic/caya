@@ -72,6 +72,7 @@ integer = [0-9](_?[0-9]+)*
   ","                         { return token(COMMA); }
   "."                         { return token(DOT); }
   ";"                         { return token(SEMICOLON); }
+  "="                         { return token(ASSIGN); }
   "("                         { return token(LPAREN); }
   ")"                         { return token(RPAREN); }
   "["                         { return token(LBRACKET); }
