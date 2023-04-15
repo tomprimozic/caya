@@ -71,6 +71,7 @@ public class ParserHelper {
   List<Node> list() { return new ArrayList<Node>(); }
   List<Node> list(Node node) { return new ArrayList<Node>(List.of(node)); }
   List<Node> list(List<Node> ns, Node n) { ns.add(n); return ns; }
+  List<Node> list(Node n, List<Node> ns) { ns.add(0, n); return ns; }
 
   Node error(Location loc, String error) { Err e = new Err(loc, error); errors.add(e); return e; }
 

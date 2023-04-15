@@ -65,6 +65,7 @@ term:
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | term "." IDENT                  { $$ = field(@$, $1, $3); }
   | "(" expr ")"                    { $$ = paren(@$, $2); }
+  | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "[" exprs0 "]"                  { $$ = array(@$, $2); }
   | term "(" exprs0 ")"             { $$ = call(@$, $1, $3); }
   | term "[" exprs0 "]"             { $$ = item(@$, $1, $3); }

@@ -83,8 +83,20 @@ public final class Runtime {
     public Value get(Value obj) { return new BoundMethod(obj, this); }
     public Value call(Value obj, Value[] args) {
       try {
-        return null_to_none((Value) m.invoke(obj, args));
+        return null_to_none((Value) m.invoke(obj, prepare_arguments(m, args)));
       } catch (Throwable e) { throw new RuntimeException(e); }
+    }
+
+    private static Object[] prepare_arguments(java.lang.reflect.Executable e, Object[] args) {
+      if (e.isVarArgs()) {
+        var varargs_type = e.getParameterTypes()[e.getParameterCount() - 1];
+        var length = args.length - e.getParameterCount() + 1;
+        var varargs = java.lang.reflect.Array.newInstance(varargs_type.componentType(), length);
+        System.arraycopy(args, e.getParameterCount() - 1, varargs, 0, length);
+        args = java.util.Arrays.copyOf(args, e.getParameterCount(), Object[].class);
+        args[args.length - 1] = varargs;
+      }
+      return args;
     }
   }
 }

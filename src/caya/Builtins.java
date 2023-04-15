@@ -59,7 +59,7 @@ public final class Builtins {
     public String toString() { return data.mkString("[", ", ", "]"); }
 
     public void push(Value item) { data.prepend(item); }
-    public void append(Value item) { data.append(item); }
+    public void append(Value... items) { for(var item : items) { data.append(item); } }
     public Value pop() { return data.removeHead(true); }
     public Value shift() { return data.removeLast(true); }
     public Int size() { return new Int(data.size()); }
