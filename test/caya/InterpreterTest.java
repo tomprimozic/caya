@@ -24,7 +24,9 @@ public class InterpreterTest {
       arguments("[1, 2, 3].size", "3"),
       arguments("[].append(1)", "none"),
       arguments("'xyzz'.size", "4"),
-      arguments("\"'\".join([4,6,7,])", "4'6'7")
+      arguments("\"'\".join([4,6,7,])", "4'6'7"),
+      arguments("", "none"),
+      arguments("7; 3", "3")
     );
   }
 }

@@ -20,7 +20,9 @@ public class ParserTest {
 
   private static Stream<Arguments> ok() {
     return Stream.of(
+      arguments("", "Seq[[]]"),
       arguments("x", "Ident[x]"),
+      arguments("x; 1", "Seq[[Ident[x], Int[1]]]"),
       arguments("false", "Bool[false]"),
       arguments("1.x", "Field[Int[1], x]"),
       arguments("(1)", "Int[1]"),

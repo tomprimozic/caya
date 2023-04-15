@@ -27,7 +27,18 @@ public class ParserHelper {
     if(parser.result == null) {
       throw new ParserError("failed to parse");
     }
-    return parser.result;
+    // bison returns a null location if code == "", so we handle it ourselves
+    if(parser.result.isEmpty()) {
+      var loc = new Location(new Pos(0), new Pos(code.length()));
+      return new Node.Seq(loc, List.of());
+    } else if(parser.result.size() > 1) {
+      var first = parser.result.get(0);
+      var last = parser.result.get(parser.result.size() - 1);
+      var loc = new Location(first.loc().begin, last.loc().end);
+      return new Node.Seq(loc, parser.result);
+    } else {
+      return parser.result.get(0);
+    }
   }
 
   public static List<String> tokenize(String code) {
@@ -73,4 +84,5 @@ public class ParserHelper {
   Node array(Location loc, List<Node> items) { return new Array(loc, items); }
   Node call(Location loc, Node fn, List<Node> args) { return new Call(loc, fn, args); }
   Node item(Location loc, Node expr, List<Node> items) { return new Item(loc, expr, items); }
+  Seq seq(Location loc, List<Node> exprs) { return new Seq(loc, exprs); }
 }

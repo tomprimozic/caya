@@ -15,6 +15,8 @@ public interface Node {
     return s;
   }
 
+  public Location loc();
+
   record Err(Location loc, String error) implements Node {}
   record Ident(Location loc, String name) implements Node {}
   record Int(Location loc, BigInteger value) implements Node {}
@@ -25,4 +27,5 @@ public interface Node {
   record Array(Location loc, List<Node> items) implements Node {}
   record Item(Location loc, Node expr, List<Node> items) implements Node {}
   record Call(Location loc, Node fn, List<Node> args) implements Node {}
+  record Seq(Location loc, List<Node> exprs) implements Node {}
 }

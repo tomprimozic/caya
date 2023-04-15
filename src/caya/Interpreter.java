@@ -2,7 +2,7 @@ package caya;
 
 import caya.Runtime.Value;
 
-public class Interpreter {
+public final class Interpreter {
   public static final class InterpreterError extends RuntimeException {
     public InterpreterError(String msg) { super(msg); }
   }
@@ -16,6 +16,17 @@ public class Interpreter {
       case Node.Array(var loc, var items) -> new Builtins.List(items.stream().map(this::eval).toArray(size -> new Value[size]));
       case Node.Field(var loc, var expr, var field) -> eval(expr).get_attr(field);
       case Node.Call(var loc, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
+      case Node.Seq(var loc, var exprs) -> {
+        if(exprs.isEmpty()) yield Builtins.NONE;
+        var it = exprs.iterator();
+        while(true) {
+          var expr = it.next();
+          var value = eval(expr);
+          if(!it.hasNext()) {
+            yield value;
+          }
+        }
+      }
       default -> throw new InterpreterError("not implemented");
     };
     return result;

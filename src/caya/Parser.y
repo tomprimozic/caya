@@ -14,7 +14,7 @@
 %define parse.trace
 
 %code {
-  Node result = null;
+  List<Node> result = null;
 
   public static String token_name(int token) { return yytranslate_(token).getName(); }
 
@@ -28,17 +28,25 @@
 %token <String> IDENT INTEGER STRING ERROR
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
-%token DOT "." COMMA ","
+%token DOT "." COMMA "," SEMICOLON ";"
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]"
 
 
 %type <Node> expr term
-%type <List<Node>> exprs0 exprs1
+%type <List<Node>> exprs0 exprs1 statements0 statements1
 
 %%
 
 start:
-  expr                              { this.result = $1; }
+    statements0                     { this.result = $1; }
+
+statements0:
+    %empty                          { $$ = list(); }
+  | statements1
+
+statements1:
+    expr                            { $$ = list($1); }
+  | statements1 ";" expr            { $$ = list($1, $3); }
 
 expr:
   term
