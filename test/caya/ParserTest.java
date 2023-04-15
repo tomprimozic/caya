@@ -40,6 +40,6 @@ public class ParserTest {
       "{}",
   })
   void test_error(String code) {
-    assertThrows(RuntimeException.class, () -> ParserHelper.parse(code));
+    assertThrows(Parser.ParserError.class, () -> ParserHelper.parse(code));
   }
 }

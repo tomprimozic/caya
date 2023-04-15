@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import caya.Parser.Location;
+import caya.Parser.ParserError;
 import caya.Node.*;
 
 public class ParserHelper {
@@ -18,13 +19,13 @@ public class ParserHelper {
     try {
       parser.parse();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new ParserError(e);
     }
     if(!parser.errors.isEmpty()) {
-      throw new RuntimeException("parsing errors: " + parser.errors);
+      throw new ParserError("parsing errors: " + parser.errors);
     }
     if(parser.result == null) {
-      throw new RuntimeException("failed to parse");
+      throw new ParserError("failed to parse");
     }
     return parser.result;
   }

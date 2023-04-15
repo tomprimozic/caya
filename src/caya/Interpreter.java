@@ -1,16 +1,20 @@
 package caya;
 
+import caya.Runtime.Value;
+
 public class Interpreter {
-    private static Value error(String msg) {
-        throw new RuntimeException(msg);
+    public static final class InterpreterError extends RuntimeException {
+        public InterpreterError(String msg) { super(msg); }
     }
 
     public Value eval(Node n) {
         Value result = switch(n) {
-            case Node.Int(var loc, var value) -> new Value.Int(value);
-            case Node.None(var loc) -> Value.NONE;
-            case Node.Bool(var loc, var value) -> value ? Value.TRUE : Value.FALSE;
-            default -> error("not implemented");
+            case Node.Int(var loc, var value) -> new Builtins.Int(value);
+            case Node.None(var loc) -> Builtins.NONE;
+            case Node.Bool(var loc, var value) -> value ? Builtins.TRUE : Builtins.FALSE;
+            case Node.Array(var loc, var items) -> new Builtins.List(items.stream().map(this::eval).toArray(size -> new Value[size]));
+            case Node.Field(var loc, var expr, var field) -> eval(expr).get_attr(field);
+            default -> throw new InterpreterError("not implemented");
         };
         return result;
     }

@@ -19,9 +19,9 @@
   public static String token_name(int token) { return yytranslate_(token).getName(); }
 
   public static final class ParserError extends RuntimeException {
-    public ParserError(Parser.Location location, String msg) {
-      super(location.toString() + ": " + msg);
-    }
+    public ParserError(Parser.Location location, String msg) { super(location.toString() + ": " + msg); }
+    public ParserError(String msg) { super(msg); }
+    public ParserError(Exception cause) { super(cause); }
   }
 }
 
