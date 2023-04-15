@@ -43,7 +43,8 @@ public class InterpreterTest {
       arguments("f(x) = x + 1", "none"),
       arguments("f(x) = x + 1; f(3)", "4"),
       arguments("f(x) = x + y; y = 4; f(3)", "7"),
-      arguments("f(x) = x + y; y = 4; a = []; a.append(f(3)); y = -9; a.append(f(3)); a", "[7, -6]")
+      arguments("f(x) = x + y; y = 4; a = []; a.append(f(3)); y = -9; a.append(f(3)); a", "[7, -6]"),
+      arguments("m() = (x = 0; get() = x; set(y) = (x = y; -1); [get, set]); a = m(); b = m(); [a[0](), b[0](), a[1](4), b[1](9), a[0](), b[0]()]", "[0, 0, -1, -1, 4, 9]")
     );
   }
 

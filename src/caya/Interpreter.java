@@ -98,6 +98,7 @@ public final class Interpreter {
           this.set(fn, new Runtime.Function(param_names, this, body));
           yield NONE;
         }
+        case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
         default -> throw new InterpreterError("not implemented");
       };
       return result;
