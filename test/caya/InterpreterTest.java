@@ -22,7 +22,9 @@ public class InterpreterTest {
       arguments("1", "1"),
       arguments("[1, 2, 3]", "[1, 2, 3]"),
       arguments("[1, 2, 3].size", "3"),
-      arguments("'xyzz'.size", "4")
+      arguments("[].append(1)", "none"),
+      arguments("'xyzz'.size", "4"),
+      arguments("\"'\".join([4,6,7,])", "4'6'7")
     );
   }
 }

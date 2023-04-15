@@ -15,6 +15,7 @@ public class Interpreter {
       case Node.Bool(var loc, var value) -> value ? Builtins.TRUE : Builtins.FALSE;
       case Node.Array(var loc, var items) -> new Builtins.List(items.stream().map(this::eval).toArray(size -> new Value[size]));
       case Node.Field(var loc, var expr, var field) -> eval(expr).get_attr(field);
+      case Node.Call(var loc, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
       default -> throw new InterpreterError("not implemented");
     };
     return result;

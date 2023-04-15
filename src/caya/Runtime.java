@@ -5,6 +5,8 @@ import java.util.HashMap;
 public final class Runtime {
   public static final class NotImplemented extends RuntimeException {}
 
+  public static Value null_to_none(Value value) { return value == null ? Builtins.NONE : value; }
+
   public static abstract class Value {
     public Value call(Value[] args) { throw new NotImplemented(); }
     public Value get_attr(String field) { throw new NotImplemented(); }
@@ -71,7 +73,7 @@ public final class Runtime {
   record BuiltinProperty(java.lang.reflect.Method m) implements Descriptor {
     public Value get(Value obj) {
       try {
-        return (Value) m.invoke(obj);
+        return null_to_none((Value) m.invoke(obj));
       } catch (Throwable e) { throw new RuntimeException(e); }
     }
     public Value call(Value obj, Value[] args) { return ((Value) get(obj)).call(args); }
@@ -81,7 +83,7 @@ public final class Runtime {
     public Value get(Value obj) { return new BoundMethod(obj, this); }
     public Value call(Value obj, Value[] args) {
       try {
-        return (Value) m.invoke(obj, args);
+        return null_to_none((Value) m.invoke(obj, args));
       } catch (Throwable e) { throw new RuntimeException(e); }
     }
   }

@@ -26,6 +26,10 @@ public class ParserTest {
       arguments("(1)", "Int[1]"),
       arguments("f()", "Call[Ident[f], []]"),
       arguments("f(1)", "Call[Ident[f], [Int[1]]]"),
+      arguments("[]", "Array[[]]"),
+      arguments("[1]", "Array[[Int[1]]]"),
+      arguments("[1,]", "Array[[Int[1]]]"),
+      arguments("[9, 7,]", "Array[[Int[9], Int[7]]]"),
       arguments("[1, 2, 3]", "Array[[Int[1], Int[2], Int[3]]]"),
       arguments("a.push(1, 8)", "Call[Field[Ident[a], push], [Int[1], Int[8]]]"),
       arguments("_", "Ident[_]"),
@@ -38,6 +42,7 @@ public class ParserTest {
   @ValueSource(strings = {
     "(",
     "{}",
+    "[,]",
   })
   void test_error(String code) {
     assertThrows(Parser.ParserError.class, () -> ParserHelper.parse(code));
