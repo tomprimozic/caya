@@ -54,7 +54,7 @@ public class ParserHelper {
   }
 
   private BigInteger parse_integer(String s) {
-      return new BigInteger(s.replaceAll("_", ""));
+    return new BigInteger(s.replaceAll("_", ""));
   }
 
   List<Node> list() { return new ArrayList<Node>(); }

@@ -18,16 +18,16 @@ public class LexerTest {
 
   private static Stream<Arguments> code() {
     return Stream.of(
-        arguments("false", "FALSE"),
-        arguments("1.x", "INTEGER(1) . IDENT(x)"),
-        arguments("1.2", "INTEGER(1) . INTEGER(2)"),
-        arguments("1.e2", "INTEGER(1) . IDENT(e2)"),
-        arguments("non none nones xnone", "IDENT(non) NONE IDENT(nones) IDENT(xnone)"),
-        arguments("1x", "INTEGER(1) IDENT(x)"),
-        arguments("1e4", "INTEGER(1) IDENT(e4)"),
-        arguments("x1", "IDENT(x1)"),
-        arguments("0x1", "INTEGER(0) IDENT(x1)"),
-        arguments(".((])[,", ". ( ( ] ) [ ,")
-      );
+      arguments("false", "FALSE"),
+      arguments("1.x", "INTEGER(1) . IDENT(x)"),
+      arguments("1.2", "INTEGER(1) . INTEGER(2)"),
+      arguments("1.e2", "INTEGER(1) . IDENT(e2)"),
+      arguments("non none nones xnone", "IDENT(non) NONE IDENT(nones) IDENT(xnone)"),
+      arguments("1x", "INTEGER(1) IDENT(x)"),
+      arguments("1e4", "INTEGER(1) IDENT(e4)"),
+      arguments("x1", "IDENT(x1)"),
+      arguments("0x1", "INTEGER(0) IDENT(x1)"),
+      arguments(".((])[,", ". ( ( ] ) [ ,")
+    );
   }
 }

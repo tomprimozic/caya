@@ -18,10 +18,10 @@ public class InterpreterTest {
 
   private static Stream<Arguments> exprs() {
     return Stream.of(
-        arguments("false", "false"),
-        arguments("1", "1"),
-        arguments("[1, 2, 3]", "[1, 2, 3]"),
-        arguments("[1, 2, 3].size", "3")
+      arguments("false", "false"),
+      arguments("1", "1"),
+      arguments("[1, 2, 3]", "[1, 2, 3]"),
+      arguments("[1, 2, 3].size", "3")
     );
   }
 }

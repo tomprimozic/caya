@@ -60,7 +60,7 @@ public final class Runtime {
     public BoundMethod(Value obj, Descriptor method) { this.obj = obj; this.method = method; }
 
     public Value call(Value[] args) { return method.call(obj, args); }
-}
+  }
 
   public static interface Descriptor {
     public Value call(Value obj, Value[] args);
@@ -69,7 +69,7 @@ public final class Runtime {
   }
 
   record BuiltinProperty(java.lang.reflect.Method m) implements Descriptor {
-    public Value get(Value obj) { 
+    public Value get(Value obj) {
       try {
         return (Value) m.invoke(obj);
       } catch (Throwable e) { throw new RuntimeException(e); }

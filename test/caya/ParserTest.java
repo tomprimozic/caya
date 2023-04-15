@@ -20,24 +20,24 @@ public class ParserTest {
 
   private static Stream<Arguments> ok() {
     return Stream.of(
-        arguments("x", "Ident[x]"),
-        arguments("false", "Bool[false]"),
-        arguments("1.x", "Field[Int[1], x]"),
-        arguments("(1)", "Int[1]"),
-        arguments("f()", "Call[Ident[f], []]"),
-        arguments("f(1)", "Call[Ident[f], [Int[1]]]"),
-        arguments("[1, 2, 3]", "Array[[Int[1], Int[2], Int[3]]]"),
-        arguments("a.push(1, 8)", "Call[Field[Ident[a], push], [Int[1], Int[8]]]"),
-        arguments("_", "Ident[_]"),
-        arguments("x._", "Field[Ident[x], _]"),
-        arguments("x[0]", "Item[Ident[x], [Int[0]]]")
-      );
+      arguments("x", "Ident[x]"),
+      arguments("false", "Bool[false]"),
+      arguments("1.x", "Field[Int[1], x]"),
+      arguments("(1)", "Int[1]"),
+      arguments("f()", "Call[Ident[f], []]"),
+      arguments("f(1)", "Call[Ident[f], [Int[1]]]"),
+      arguments("[1, 2, 3]", "Array[[Int[1], Int[2], Int[3]]]"),
+      arguments("a.push(1, 8)", "Call[Field[Ident[a], push], [Int[1], Int[8]]]"),
+      arguments("_", "Ident[_]"),
+      arguments("x._", "Field[Ident[x], _]"),
+      arguments("x[0]", "Item[Ident[x], [Int[0]]]")
+    );
   }
 
   @ParameterizedTest
   @ValueSource(strings = {
-      "(",
-      "{}",
+    "(",
+    "{}",
   })
   void test_error(String code) {
     assertThrows(Parser.ParserError.class, () -> ParserHelper.parse(code));
