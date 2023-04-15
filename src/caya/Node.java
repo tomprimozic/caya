@@ -1,6 +1,7 @@
 package caya;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import caya.Parser.Location;
@@ -15,8 +16,12 @@ public interface Node {
     }
 
     record Err(Location loc, String error) implements Node {}
+    record Ident(Location loc, String name) implements Node {}
     record Int(Location loc, BigInteger value) implements Node {}
     record Bool(Location loc, boolean value) implements Node {}
     record None(Location loc) implements Node {}
     record Field(Location loc, Node expr, String field) implements Node {}
+    record Array(Location loc, List<Node> items) implements Node {}
+    record Item(Location loc, Node expr, List<Node> items) implements Node {}
+    record Call(Location loc, Node fn, List<Node> args) implements Node {}
 }

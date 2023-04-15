@@ -61,12 +61,49 @@ integer = [0-9](_?[0-9]+)*
   [ \t\n]                       { /* whitespace */ }
 
   /* symbols */
+  ","                         { return token(COMMA); }
   "."                         { return token(DOT); }
+  "("                         { return token(LPAREN); }
+  ")"                         { return token(RPAREN); }
+  "["                         { return token(LBRACKET); }
+  "]"                         { return token(RBRACKET); }
 
   /* keywords */
   "none"                      { return token(NONE); }
   "true"                      { return token(TRUE); }
   "false"                     { return token(FALSE); }
+  "let"                       { return token(LET); }
+  "var"                       { return token(VAR); }
+  "if"                        { return token(IF); }
+  "then"                      { return token(THEN); }
+  "else"                      { return token(ELSE); }
+  "for"                       { return token(FOR); }
+  "in"                        { return token(IN); }
+  "while"                     { return token(WHILE); }
+  "break"                     { return token(BREAK); }
+  "continue"                  { return token(CONTINUE); }
+  "fn"                        { return token(FUNC); }
+  "fun"                       { return token(FUNC); }
+  "func"                      { return token(FUNC); }
+  "function"                  { return token(FUNC); }
+  "return"                    { return token(RETURN); }
+  "print"                     { return token(PRINT); }
+  "module"                    { return token(MODULE); }
+  "import"                    { return token(IMPORT); }
+  "not"                       { return token(NOT); }
+  "and"                       { return token(AND); }
+  "or"                        { return token(OR); }
+  "match"                     { return token(MATCH); }
+  "type"                      { return token(TYPE); }
+  "record"                    { return token(RECORD); }
+  "struct"                    { return token(STRUCT); }
+  "class"                     { return token(CLASS); }
+  "forall"                    { return token(FORALL); }
+  "exists"                    { return token(EXISTS); }
+  "do"                        { return token(DO); }
+  "try"                       { return token(TRY); }
+  "catch"                     { return token(CATCH); }
+  "throw"                     { return token(THROW); }
 
   /* the rest */
   {integer}                   { return token(INTEGER, yytext()); }

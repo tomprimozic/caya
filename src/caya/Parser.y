@@ -26,23 +26,41 @@
 }
 
 %token <String> IDENT INTEGER ERROR
-%token NONE TRUE FALSE
-%token DOT "."
+%token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
+%token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
+%token DOT "." COMMA ","
+%token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]"
+
 
 %type <Node> expr term
+%type <List<Node>> exprs0 exprs1
 
 %%
 
 start:
-  expr                      { this.result = $1; }
+  expr                              { this.result = $1; }
 
 expr:
   term
 
 term:
-    INTEGER                         { $$ = integer(@$, $1); }
+    IDENT                           { $$ = ident(@$, $1); }
+  | INTEGER                         { $$ = integer(@$, $1); }
   | TRUE                            { $$ = bool(@$, true); }
   | FALSE                           { $$ = bool(@$, false); }
   | NONE                            { $$ = none(@$); }
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | term "." IDENT                  { $$ = field(@$, $1, $3); }
+  | "(" expr ")"                    { $$ = paren(@$, $2); }
+  | "[" exprs0 "]"                  { $$ = array(@$, $2); }
+  | term "(" exprs0 ")"             { $$ = call(@$, $1, $3); }
+  | term "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
+
+exprs0:
+    %empty                          { $$ = list(); }
+  | exprs1
+  | exprs1 ","
+
+exprs1:
+    expr                            { $$ = list($1); }
+  | exprs1 "," expr                 { $$ = list($1, $3); }
