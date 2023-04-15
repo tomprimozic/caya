@@ -36,6 +36,11 @@ public final class Interpreter {
         }
       }
       case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> variables.put(name, eval(expr));
+      case Node.Unary(var __, Node.Ident(var ___, var op), var expr) when op == "-" -> new Builtins.Int(((Builtins.Int) eval(expr)).value.negate());
+      case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Builtins.Int(((Builtins.Int) eval(left)).value.add(((Builtins.Int) eval(right)).value));
+      case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "-" -> new Builtins.Int(((Builtins.Int) eval(left)).value.subtract(((Builtins.Int) eval(right)).value));
+      case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "*" -> new Builtins.Int(((Builtins.Int) eval(left)).value.multiply(((Builtins.Int) eval(right)).value));
+      case Node.If(var __, var cond, var then, var else_) -> ((Builtins.Bool) eval(cond)).value ? eval(then) : eval(else_);
       default -> throw new InterpreterError("not implemented");
     };
     return result;

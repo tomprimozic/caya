@@ -29,4 +29,7 @@ sealed public interface Node {
   record Call(Location loc, Node fn, List<Node> args) implements Node {}
   record Seq(Location loc, List<Node> exprs) implements Node {}
   record Assign(Location loc, Node pattern, Node value) implements Node {}
+  record Unary(Location loc, Ident op, Node expr) implements Node {}
+  record Binary(Location loc, Ident op, Node left, Node right) implements Node {}
+  record If(Location loc, Node cond, Node then, Node else_) implements Node {}
 }

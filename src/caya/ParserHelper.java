@@ -75,7 +75,7 @@ public class ParserHelper {
 
   Node error(Location loc, String error) { Err e = new Err(loc, error); errors.add(e); return e; }
 
-  Node ident(Location loc, String name) { return new Ident(loc, name); }
+  Ident ident(Location loc, String name) { return new Ident(loc, name); }
   Node integer(Location loc, String value) { return new Int(loc, parse_integer(value)); }
   Node bool(Location loc, boolean value) { return new Bool(loc, value); }
   Node str(Location loc, String value) { return new Str(loc, value); }
@@ -87,4 +87,7 @@ public class ParserHelper {
   Node item(Location loc, Node expr, List<Node> items) { return new Item(loc, expr, items); }
   Seq seq(Location loc, List<Node> exprs) { return new Seq(loc, exprs); }
   Node assign(Location loc, Node pattern, Node value) { return new Assign(loc, pattern, value); }
+  Node binary(Location loc, Node left, Ident op, Node right) { return new Binary(loc, op, left, right); }
+  Node unary(Location loc, Ident op, Node expr) { return new Unary(loc, op, expr); }
+  Node if_expr(Location loc, Node cond, Node then, Node else_) { return new If(loc, cond, then, else_); }
 }

@@ -29,7 +29,7 @@ public class LexerTest {
       arguments("1e4", "INTEGER(1) IDENT(e4)"),
       arguments("x1", "IDENT(x1)"),
       arguments("0x1", "INTEGER(0) IDENT(x1)"),
-      arguments(".((...=]);;..[,==", ". ( ( . . . = ] ) ; ; . . [ , = ="),
+      arguments(".((...-++=]);;..[,==", ". ( ( . . . - + + = ] ) ; ; . . [ , = ="),
       arguments("'a' '\\t' '\\'' \"f\"", "STRING(a) STRING(\t) STRING(') STRING(f)")
     );
   }

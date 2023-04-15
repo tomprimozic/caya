@@ -29,11 +29,16 @@
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
 %token DOT "." COMMA "," SEMICOLON ";" ASSIGN "="
+%token PLUS "+" MINUS "-" STAR "*"
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]"
 
 
-%type <Node> statement expr term
+%type <Node> statement expr arith term
 %type <List<Node>> exprs0 exprs1 statements0 statements1
+
+%left "+" "-"
+%precedence UNARY
+%left "*"
 
 %%
 
@@ -53,7 +58,15 @@ statement:
   | expr "=" expr                   { $$ = assign(@$, $1, $3); }
 
 expr:
-  term
+    arith
+  | IF expr THEN expr ELSE expr     { $$ = if_expr(@$, $2, $4, $6); }
+
+arith:
+    term
+  | "-" arith          %prec UNARY  { $$ = unary(@$, ident(@1, "-"), $2); }
+  | arith "+" arith                 { $$ = binary(@$, $1, ident(@2, "+"), $3); }
+  | arith "-" arith                 { $$ = binary(@$, $1, ident(@2, "-"), $3); }
+  | arith "*" arith                 { $$ = binary(@$, $1, ident(@2, "*"), $3); }
 
 term:
     IDENT                           { $$ = ident(@$, $1); }

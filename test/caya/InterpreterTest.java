@@ -22,6 +22,7 @@ public class InterpreterTest {
     return Stream.of(
       arguments("false", "false"),
       arguments("1", "1"),
+      arguments("-1", "-1"),
       arguments("[1, 2, 3]", "[1, 2, 3]"),
       arguments("[1, 2, 3].size", "3"),
       arguments("[].append(1)", "none"),
@@ -33,7 +34,11 @@ public class InterpreterTest {
       arguments("x = 1; x = 4; x", "4"),
       arguments("l = []; l.append(1); l.append(5); l", "[1, 5]"),
       arguments("l = []; l.append(7, 3); l", "[7, 3]"),
-      arguments("l = []; (l.append(0); l).append((l.append(1); 4), (l.append(2); 5), (l.append(3); 6)); l", "[0, 1, 2, 3, 4, 5, 6]")
+      arguments("l = []; (l.append(0); l).append((l.append(1); 4), (l.append(2); 5), (l.append(3); 6)); l", "[0, 1, 2, 3, 4, 5, 6]"),
+      arguments("1 + -1", "0"),
+      arguments("if true then 1 else 0", "1"),
+      arguments("if false then 1 else 0", "0"),
+      arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]")
     );
   }
 
