@@ -36,8 +36,9 @@ public class InterpreterTest {
       arguments("l = []; l.append(7, 3); l", "[7, 3]"),
       arguments("l = []; (l.append(0); l).append((l.append(1); 4), (l.append(2); 5), (l.append(3); 6)); l", "[0, 1, 2, 3, 4, 5, 6]"),
       arguments("1 + -1", "0"),
-      arguments("if true then 1 else 0", "1"),
-      arguments("if false then 1 else 0", "0"),
+      arguments("if true then 1 else 'y'", "1"),
+      arguments("if false then 1 else 'y'", "y"),
+      arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]"),
       arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]")
     );
   }
@@ -45,6 +46,9 @@ public class InterpreterTest {
   @ParameterizedTest
   @ValueSource(strings = {
     "y",
+    "1 + true",
+    "if 1 then 'x' else 'y'",
+    "[][true]"
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> new Interpreter().eval(Parser.parse(code)));

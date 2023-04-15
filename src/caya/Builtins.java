@@ -64,8 +64,8 @@ public final class Builtins {
     public Value shift() { return data.removeLast(true); }
     public Int size() { return new Int(data.size()); }
 
-    public Value get_item(Value item) { return this.data.apply(((Int) item).value.intValueExact()); }
-    public void set_item(Value item, Value value) { data.update(((Int) item).value.intValueExact(), value); }
+    public Value get_item(Value item) { return this.data.apply(Interpreter.to_int(item).value.intValueExact()); }
+    public void set_item(Value item, Value value) { data.update(Interpreter.to_int(item).value.intValueExact(), value); }
 
     public final HashMap<String, Descriptor> fields() { return FIELDS; }
     public static final HashMap<String, Descriptor> FIELDS = BuiltinValue.resolve_fields(List.class,
