@@ -34,6 +34,21 @@ public final class Builtins {
   public final static Bool TRUE = new Bool(true);
   public final static Bool FALSE = new Bool(false);
 
+  public final static class Str extends BuiltinValue {
+    public final String value;
+    public Str(String value) { this.value = value; }
+    public String toString() { return value; }
+
+    public Int size() { return new Int(value.length()); }
+    public Value join(List items) { return new Str(items.data.mkString(this.value)); }
+
+    public final HashMap<String, Descriptor> fields() { return FIELDS; }
+    public static final HashMap<String, Descriptor> FIELDS = BuiltinValue.resolve_fields(Str.class,
+      new String[] {"size"},
+      new String[] {"join"}
+    );
+  }
+
   public final static class List extends BuiltinValue {
     public final ArrayDeque<Value> data;
     public List() { data = new ArrayDeque<>(4); }

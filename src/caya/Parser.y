@@ -25,7 +25,7 @@
   }
 }
 
-%token <String> IDENT INTEGER ERROR
+%token <String> IDENT INTEGER STRING ERROR
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
 %token DOT "." COMMA ","
@@ -48,6 +48,7 @@ term:
   | INTEGER                         { $$ = integer(@$, $1); }
   | TRUE                            { $$ = bool(@$, true); }
   | FALSE                           { $$ = bool(@$, false); }
+  | STRING                          { $$ = str(@$, $1); }
   | NONE                            { $$ = none(@$); }
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | term "." IDENT                  { $$ = field(@$, $1, $3); }

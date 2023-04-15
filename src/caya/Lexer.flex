@@ -15,16 +15,17 @@ import caya.ParserHelper.Pos;
 %{
   public String value = null;
   private long start_pos;
+  private StringBuffer buffer = new StringBuffer();
   public final ArrayList<ParsingError> errors = new ArrayList<>();
 
   public int token(int token) {
-    this.start_pos = yychar;
+    if(token != STRING) { this.start_pos = yychar; }
     this.value = null;
     return token;
   }
 
   public int token(int token, String value) {
-    this.start_pos = yychar;
+    if(token != STRING) { this.start_pos = yychar; }
     this.value = value;
     return token;
   }
@@ -35,6 +36,10 @@ import caya.ParserHelper.Pos;
 
   public void yyerror (Parser.Location location, String msg) {
     throw new Parser.ParserError(location, msg);
+  }
+
+  private void error(String msg) {
+    throw new Parser.ParserError(new Parser.Location(getStartPos()), msg);
   }
 
   public void reportSyntaxError(Parser.Context ctx) {
@@ -54,6 +59,9 @@ import caya.ParserHelper.Pos;
 identifier = [_a-zA-Z][_a-zA-Z0-9]*
 
 integer = [0-9](_?[0-9]+)*
+
+%state SINGLE_STRING
+%state DOUBLE_STRING
 
 %%
 
@@ -106,8 +114,36 @@ integer = [0-9](_?[0-9]+)*
   "throw"                     { return token(THROW); }
 
   /* the rest */
+  \'                          { buffer.setLength(0); start_pos = yychar; yybegin(SINGLE_STRING); }
+  \"                          { buffer.setLength(0); start_pos = yychar; yybegin(DOUBLE_STRING); }
   {integer}                   { return token(INTEGER, yytext()); }
   {identifier}                { return token(IDENT, yytext()); }
+}
+
+<SINGLE_STRING> {
+  "'"                         { yybegin(YYINITIAL); return token(STRING, buffer.toString()); }
+  [^\n\r\'\\]+                { buffer.append(yytext()); }
+}
+
+<DOUBLE_STRING> {
+  "\""                        { yybegin(YYINITIAL); return token(STRING, buffer.toString()); }
+  [^\n\r\"\\]+                { buffer.append(yytext()); }
+}
+
+<SINGLE_STRING,DOUBLE_STRING> {
+  /* escapes */
+  \\t                         { buffer.append('\t'); }
+  \\n                         { buffer.append('\n'); }
+  \\r                         { buffer.append('\r'); }
+  \\\'                        { buffer.append('\''); }
+  \\\"                        { buffer.append('"'); }
+  \\\\                        { buffer.append('\\'); }
+  \\ [^tnr\'\"\\]             { error("invalid escape: " + yytext()); }
+
+  /* normalize newlines */
+  \n | \r | \r\n              { buffer.append( '\n' ); }
+
+  <<EOF>>                     { yybegin(YYINITIAL); return token(ERROR, "unexpected EOF in string"); }
 }
 
 [^]                           { return token(ERROR, yytext()); }

@@ -21,7 +21,8 @@ public class InterpreterTest {
       arguments("false", "false"),
       arguments("1", "1"),
       arguments("[1, 2, 3]", "[1, 2, 3]"),
-      arguments("[1, 2, 3].size", "3")
+      arguments("[1, 2, 3].size", "3"),
+      arguments("'xyzz'.size", "4")
     );
   }
 }

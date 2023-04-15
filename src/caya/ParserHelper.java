@@ -66,6 +66,7 @@ public class ParserHelper {
   Node ident(Location loc, String name) { return new Ident(loc, name); }
   Node integer(Location loc, String value) { return new Int(loc, parse_integer(value)); }
   Node bool(Location loc, boolean value) { return new Bool(loc, value); }
+  Node str(Location loc, String value) { return new Str(loc, value); }
   Node none(Location loc) { return new None(loc); }
   Node field(Location loc, Node obj, String field) { return new Field(loc, obj, field); }
   Node paren(Location loc, Node expr) { return expr; }    // TODO: should be a different Node, to update location

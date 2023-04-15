@@ -10,6 +10,7 @@ public class Interpreter {
   public Value eval(Node n) {
     Value result = switch(n) {
       case Node.Int(var loc, var value) -> new Builtins.Int(value);
+      case Node.Str(var loc, var value) -> new Builtins.Str(value);
       case Node.None(var loc) -> Builtins.NONE;
       case Node.Bool(var loc, var value) -> value ? Builtins.TRUE : Builtins.FALSE;
       case Node.Array(var loc, var items) -> new Builtins.List(items.stream().map(this::eval).toArray(size -> new Value[size]));

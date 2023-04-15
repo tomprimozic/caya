@@ -19,6 +19,7 @@ public interface Node {
   record Ident(Location loc, String name) implements Node {}
   record Int(Location loc, BigInteger value) implements Node {}
   record Bool(Location loc, boolean value) implements Node {}
+  record Str(Location loc, String value) implements Node {}
   record None(Location loc) implements Node {}
   record Field(Location loc, Node expr, String field) implements Node {}
   record Array(Location loc, List<Node> items) implements Node {}
