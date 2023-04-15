@@ -15,7 +15,7 @@ public class InterpreterTest {
   @ParameterizedTest
   @MethodSource("ok")
   void test_ok(String code, String expected) {
-    assertEquals(expected, new Interpreter().eval(Parser.parse(code)).toString());
+    assertEquals(expected, Interpreter.eval(Parser.parse(code)).toString());
   }
 
   private static Stream<Arguments> ok() {
@@ -39,7 +39,11 @@ public class InterpreterTest {
       arguments("if true then 1 else 'y'", "1"),
       arguments("if false then 1 else 'y'", "y"),
       arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]"),
-      arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]")
+      arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]"),
+      arguments("f(x) = x + 1", "none"),
+      arguments("f(x) = x + 1; f(3)", "4"),
+      arguments("f(x) = x + y; y = 4; f(3)", "7"),
+      arguments("f(x) = x + y; y = 4; a = []; a.append(f(3)); y = -9; a.append(f(3)); a", "[7, -6]")
     );
   }
 
@@ -48,9 +52,10 @@ public class InterpreterTest {
     "y",
     "1 + true",
     "if 1 then 'x' else 'y'",
-    "[][true]"
+    "[][true]",
+    "f(x) = x + y; f(3)"
   })
   void test_error(String code) {
-    assertThrows(Interpreter.InterpreterError.class, () -> new Interpreter().eval(Parser.parse(code)));
+    assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));
   }
 }
