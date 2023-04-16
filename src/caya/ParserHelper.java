@@ -89,6 +89,8 @@ public class ParserHelper {
   Node item(Location loc, Node expr, List<Node> items) { return new Item(loc, expr, items); }
   Seq seq(Location loc, List<Node> exprs) { return new Seq(loc, exprs); }
   Node assign(Location loc, Node pattern, Node value) { return new Assign(loc, pattern, value); }
+  Node var(Location loc, Node pattern) { return new Var(loc, pattern); }
+  Node var(Location loc, Node pattern, Node value) { return new VarAssign(loc, pattern, value) ; }
   Node binary(Location loc, Node left, Ident op, Node right) { return new Binary(loc, op, left, right); }
   Node unary(Location loc, Ident op, Node expr) { return new Unary(loc, op, expr); }
   Node if_expr(Location loc, Node cond, Node then, Node else_) { return new IfElse(loc, cond, then, else_); }

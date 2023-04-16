@@ -58,6 +58,8 @@ statements1:
 statement:
     expr
   | expr "=" expr                   { $$ = assign(@$, $1, $3); }
+  | VAR expr                        { $$ = var(@$, $2); }
+  | VAR expr "=" expr               { $$ = var(@$, $2, $4); }
   | RETURN                          { $$ = return_(@$); }
   | RETURN expr                     { $$ = return_(@$, $2); }
   | block_if

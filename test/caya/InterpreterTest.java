@@ -51,7 +51,10 @@ public class InterpreterTest {
       arguments("l = []; l.append((l.append(0); 1) <= (l.append(1); 2) > (l.append(2); 6) < (l.append(3); 17)); l", "[0, 1, 2, false]"),
       arguments("l = []; while l.size < 4 { l.append(0) }; l", "[0, 0, 0, 0]"),
       arguments("while false {}", "none"),
-      arguments("[6, 2, 8].last", "8")
+      arguments("[6, 2, 8].last", "8"),
+      arguments("x = 1; f(x) = 0; f(3); x", "1"),
+      arguments("x = 1; f() = (x = 4; 0); f(); x", "4"),
+      arguments("x = 1; f() = (var x = 4; 0); f(); x", "1")
     );
   }
 

@@ -20,7 +20,7 @@ public final class Runtime {
       }
       var scope = new Interpreter.Scope(this.closure);
       for(int i = 0; i < params.length; i++) {
-        scope.set(params[i], args[i]);
+        scope.declare(params[i], args[i]);
       }
       return scope.eval(this.body);
     }

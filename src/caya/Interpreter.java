@@ -33,31 +33,37 @@ public final class Interpreter {
     private final Scope parent;
     public Scope() { this.parent = null; }
     public Scope(Scope parent) { this.parent = parent; }
-    public Value get(String binding) {
+
+    public Value lookup(String binding) {
       if(bindings.containsKey(binding)) {
         return bindings.get(binding);
       } else if(parent != null) {
-        return parent.get(binding);
+        return parent.lookup(binding);
       } else {
         throw new InterpreterError("binding not found: " + binding);
       }
     }
 
-    private boolean set_existing(String binding, Value value) {
+    private boolean update(String binding, Value value) {
       if(this.bindings.containsKey(binding)) {
         this.bindings.put(binding, value);
         return true;
       } else if(this.parent != null) {
-        return this.parent.set_existing(binding, value);
+        return this.parent.update(binding, value);
       } else {
         return false;
       }
     }
 
-    public void set(String binding, Value value) {
-      if(this.bindings.containsKey(binding) || this.parent == null || !this.parent.set_existing(binding, value)) {
+    public void assign(String binding, Value value) {
+      if(this.bindings.containsKey(binding) || this.parent == null || !this.parent.update(binding, value)) {
         this.bindings.put(binding, value);
       }
+    }
+
+    public void declare(String binding, Value value) {
+      if(this.bindings.containsKey(binding)) { throw new InterpreterError("duplicate var " + binding); }
+      this.bindings.put(binding, value);
     }
 
     public Value eval(Node n) {
@@ -66,7 +72,7 @@ public final class Interpreter {
         case Node.Str(var __, var value) -> new Str(value);
         case Node.None(var __) -> NONE;
         case Node.Bool(var __, var value) -> value ? TRUE : FALSE;
-        case Node.Ident(var __, var name) -> get(name);
+        case Node.Ident(var __, var name) -> lookup(name);
         case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
         case Node.Attr(var __, var expr, var attr) -> eval(expr).get_attr(attr);
         case Node.Call(var __, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
@@ -81,7 +87,8 @@ public final class Interpreter {
             }
           }
         }
-        case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> { set(name, eval(expr)); yield NONE; }
+        case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> { assign(name, eval(expr)); yield NONE; }
+        case Node.VarAssign(var __, Node.Ident(var ___, var name), var expr) -> { declare(name, eval(expr)); yield NONE; }
         case Node.Unary(var __, Node.Ident(var ___, var op), var expr) when op == "-" -> new Int(to_int(eval(expr)).value.negate());
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).value.add(to_int(eval(right)).value));
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "-" -> new Int(to_int(eval(left)).value.subtract(to_int(eval(right)).value));
@@ -97,7 +104,7 @@ public final class Interpreter {
               throw new InterpreterError("parameters must be identifiers");
             }
           }
-          this.set(fn, new Runtime.Function(param_names, this, body));
+          assign(fn, new Runtime.Function(param_names, this, body));
           yield NONE;
         }
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
