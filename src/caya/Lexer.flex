@@ -73,6 +73,12 @@ integer = [0-9](_?[0-9]+)*
   "."                         { return token(DOT); }
   ";"                         { return token(SEMICOLON); }
   "="                         { return token(ASSIGN); }
+  "<"                         { return token(LT); }
+  ">"                         { return token(GT); }
+  "=="                        { return token(EQ); }
+  "!="                        { return token(NE); }
+  "<="                        { return token(LE); }
+  ">="                        { return token(GE); }
   "-"                         { return token(MINUS); }
   "+"                         { return token(PLUS); }
   "*"                         { return token(STAR); }

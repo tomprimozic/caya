@@ -30,11 +30,12 @@
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
 %token DOT "." COMMA "," SEMICOLON ";" ASSIGN "="
 %token PLUS "+" MINUS "-" STAR "*"
+%token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]"
 
-
 %type <Node> statement expr arith term
-%type <List<Node>> exprs0 exprs1 statements0 statements1
+%type <List<Node>> exprs0 exprs1 statements0 statements1 cmp
+%type <String> cmp_op
 
 %left "+" "-"
 %precedence UNARY
@@ -43,7 +44,7 @@
 %%
 
 start:
-    statements0                     { this.result = $1; }
+    statements0 YYEOF               { this.result = $1; }
 
 statements0:
     %empty                          { $$ = list(); }
@@ -60,6 +61,19 @@ statement:
 expr:
     arith
   | IF expr THEN expr ELSE expr     { $$ = if_expr(@$, $2, $4, $6); }
+  | cmp                             { $$ = cmp(@$, $1); }
+
+cmp:
+    arith cmp_op arith              { $$ = list($1, ident(@2, $2), $3); }
+  | cmp cmp_op arith                { $$ = list($1, ident(@2, $2), $3); }
+
+cmp_op:
+    "=="                            { $$ = "=="; }
+  | "!="                            { $$ = "!="; }
+  | "<"                             { $$ = "<"; }
+  | ">"                             { $$ = ">"; }
+  | "<="                            { $$ = "<="; }
+  | ">="                            { $$ = ">="; }
 
 arith:
     term

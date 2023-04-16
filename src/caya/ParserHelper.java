@@ -72,6 +72,8 @@ public class ParserHelper {
   List<Node> list(Node node) { return new ArrayList<Node>(List.of(node)); }
   List<Node> list(List<Node> ns, Node n) { ns.add(n); return ns; }
   List<Node> list(Node n, List<Node> ns) { ns.add(0, n); return ns; }
+  List<Node> list(List<Node> ns, Node n1, Node n2) { ns.add(n1); ns.add(n2); return ns; }
+  List<Node> list(Node n1, Node n2, Node n3) { return new ArrayList<Node>(List.of(n1, n2, n3)); }
 
   Node error(Location loc, String error) { Err e = new Err(loc, error); errors.add(e); return e; }
 
@@ -90,4 +92,5 @@ public class ParserHelper {
   Node binary(Location loc, Node left, Ident op, Node right) { return new Binary(loc, op, left, right); }
   Node unary(Location loc, Ident op, Node expr) { return new Unary(loc, op, expr); }
   Node if_expr(Location loc, Node cond, Node then, Node else_) { return new If(loc, cond, then, else_); }
+  Node cmp(Location loc, List<Node> parts) { return new Cmp(loc, parts); }
 }

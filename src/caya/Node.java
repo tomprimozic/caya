@@ -32,4 +32,5 @@ sealed public interface Node {
   record Unary(Location loc, Ident op, Node expr) implements Node {}
   record Binary(Location loc, Ident op, Node left, Node right) implements Node {}
   record If(Location loc, Node cond, Node then, Node else_) implements Node {}
+  record Cmp(Location loc, List<Node> parts) implements Node {}
 }

@@ -43,7 +43,8 @@ public class ParserTest {
       arguments("x[0] = 1", "Assign[Item[Ident[x], [Int[0]]], Int[1]]"),
       arguments("f(x) = x + 1", "Assign[Call[Ident[f], [Ident[x]]], Binary[Ident[+], Ident[x], Int[1]]]"),
       arguments("h(x) = if x then 3 else -7", "Assign[Call[Ident[h], [Ident[x]]], If[Ident[x], Int[3], Unary[Ident[-], Int[7]]]]"),
-      arguments("-1 * 2", "Unary[Ident[-], Binary[Ident[*], Int[1], Int[2]]]")
+      arguments("-1 * 2", "Unary[Ident[-], Binary[Ident[*], Int[1], Int[2]]]"),
+      arguments("1 < x <= 5", "Cmp[[Int[1], Ident[<], Ident[x], Ident[<=], Int[5]]]")
     );
   }
 
@@ -52,6 +53,8 @@ public class ParserTest {
     "(",
     "{}",
     "[,]",
+    "==",
+    "*"
   })
   void test_error(String code) {
     assertThrows(Parser.ParserError.class, () -> ParserHelper.parse(code));

@@ -99,6 +99,32 @@ public final class Interpreter {
           yield NONE;
         }
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
+        case Node.Cmp(var __, var items) -> {
+          assert items.size() >= 3 && items.size() % 2 == 1;
+          var left = to_int(eval(items.get(0)));
+          for(int i = 1; i < items.size(); i += 2) {
+            var op = switch(items.get(i)) {
+              case Node.Ident(var ___, var name) -> name;
+              default -> { assert false; yield null; }
+            };
+            var right = to_int(eval(items.get(i + 1)));
+            var cmp = left.value.compareTo(right.value);
+            var cmp_result = switch(op) {
+              case "<" -> cmp < 0;
+              case ">" -> cmp > 0;
+              case "<=" -> cmp <= 0;
+              case ">=" -> cmp >= 0;
+              case "!=" -> cmp != 0;
+              case "==" -> cmp == 0;
+              default -> throw new InterpreterError("unexpected comparison operator: " + op);
+            };
+            if(!cmp_result) {
+              yield FALSE;
+            }
+            left = right;
+          }
+          yield TRUE;
+        }
         default -> throw new InterpreterError("not implemented");
       };
       return result;

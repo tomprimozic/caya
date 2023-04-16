@@ -44,7 +44,11 @@ public class InterpreterTest {
       arguments("f(x) = x + 1; f(3)", "4"),
       arguments("f(x) = x + y; y = 4; f(3)", "7"),
       arguments("f(x) = x + y; y = 4; a = []; a.append(f(3)); y = -9; a.append(f(3)); a", "[7, -6]"),
-      arguments("m() = (x = 0; get() = x; set(y) = (x = y; -1); [get, set]); a = m(); b = m(); [a[0](), b[0](), a[1](4), b[1](9), a[0](), b[0]()]", "[0, 0, -1, -1, 4, 9]")
+      arguments("m() = (x = 0; get() = x; set(y) = (x = y; -1); [get, set]); a = m(); b = m(); [a[0](), b[0](), a[1](4), b[1](9), a[0](), b[0]()]", "[0, 0, -1, -1, 4, 9]"),
+      arguments("1 < 5", "true"),
+      arguments("1 > 5", "false"),
+      arguments("1 <= 2 > -1 < 7 == 7 != 4", "true"),
+      arguments("l = []; l.append((l.append(0); 1) <= (l.append(1); 2) > (l.append(2); 6) < (l.append(3); 17)); l", "[0, 1, 2, false]")
     );
   }
 
@@ -54,7 +58,8 @@ public class InterpreterTest {
     "1 + true",
     "if 1 then 'x' else 'y'",
     "[][true]",
-    "f(x) = x + y; f(3)"
+    "f(x) = x + y; f(3)",
+    "m() = (x = 0; 1); m(); x"
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));
