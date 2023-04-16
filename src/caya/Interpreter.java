@@ -126,6 +126,10 @@ public final class Interpreter {
           }
           yield TRUE;
         }
+        case Node.While(var __, var cond, var body) -> {
+          while(to_bool(eval(cond)).value) { eval(body); }
+          yield NONE;
+        }
         default -> throw new InterpreterError("not implemented");
       };
       return result;

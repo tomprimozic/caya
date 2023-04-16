@@ -48,7 +48,9 @@ public class InterpreterTest {
       arguments("1 < 5", "true"),
       arguments("1 > 5", "false"),
       arguments("1 <= 2 > -1 < 7 == 7 != 4", "true"),
-      arguments("l = []; l.append((l.append(0); 1) <= (l.append(1); 2) > (l.append(2); 6) < (l.append(3); 17)); l", "[0, 1, 2, false]")
+      arguments("l = []; l.append((l.append(0); 1) <= (l.append(1); 2) > (l.append(2); 6) < (l.append(3); 17)); l", "[0, 1, 2, false]"),
+      arguments("l = []; while l.size < 4 { l.append(0) }; l", "[0, 0, 0, 0]"),
+      arguments("while false {}", "none")
     );
   }
 
@@ -59,7 +61,8 @@ public class InterpreterTest {
     "if 1 then 'x' else 'y'",
     "[][true]",
     "f(x) = x + y; f(3)",
-    "m() = (x = 0; 1); m(); x"
+    "m() = (x = 0; 1); m(); x",
+    "while 1 {}"
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));
