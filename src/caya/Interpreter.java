@@ -10,6 +10,7 @@ public final class Interpreter {
   public static final class InterpreterError extends RuntimeException {
     public InterpreterError(String msg) { super(msg); }
   }
+  public static final class NotImplemented extends RuntimeException {}
 
   public static Int to_int(Value value) {
     if(value instanceof Int i) {
@@ -130,7 +131,7 @@ public final class Interpreter {
           while(to_bool(eval(cond)).value) { eval(body); }
           yield NONE;
         }
-        default -> throw new InterpreterError("not implemented");
+        default -> throw new NotImplemented();
       };
       return result;
     }
