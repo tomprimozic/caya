@@ -25,7 +25,7 @@ public class ParserTest {
       arguments("none", "None[]"),
       arguments("x; 1", "Seq[[Ident[x], Int[1]]]"),
       arguments("false", "Bool[false]"),
-      arguments("1.x", "Field[Int[1], x]"),
+      arguments("1.x", "Attr[Int[1], x]"),
       arguments("(1)", "Int[1]"),
       arguments("f()", "Call[Ident[f], []]"),
       arguments("f(1)", "Call[Ident[f], [Int[1]]]"),
@@ -34,9 +34,9 @@ public class ParserTest {
       arguments("[1,]", "Array[[Int[1]]]"),
       arguments("[9, 7,]", "Array[[Int[9], Int[7]]]"),
       arguments("[1, 2, 3]", "Array[[Int[1], Int[2], Int[3]]]"),
-      arguments("a.push(1, 8)", "Call[Field[Ident[a], push], [Int[1], Int[8]]]"),
+      arguments("a.push(1, 8)", "Call[Attr[Ident[a], push], [Int[1], Int[8]]]"),
       arguments("_", "Ident[_]"),
-      arguments("x._", "Field[Ident[x], _]"),
+      arguments("x._", "Attr[Ident[x], _]"),
       arguments("x[0]", "Item[Ident[x], [Int[0]]]"),
       arguments("x = 1", "Assign[Ident[x], Int[1]]"),
       arguments("4; z = true; 'm'", "Seq[[Int[4], Assign[Ident[z], Bool[true]], Str[m]]]"),
@@ -53,7 +53,7 @@ public class ParserTest {
       arguments("if x { 1 } else if y { 3 } else { 4 }", "IfElse[Ident[x], Seq[[Int[1]]], IfElse[Ident[y], Seq[[Int[3]]], Seq[[Int[4]]]]]"),
       arguments("while a < 1 { a = a + 1 }", "While[Cmp[[Ident[a], Ident[<], Int[1]]], Seq[[Assign[Ident[a], Binary[Ident[+], Ident[a], Int[1]]]]]]"),
       arguments("fn f(x, y) { return x + y }", "Func[Call[Ident[f], [Ident[x], Ident[y]]], Seq[[Return[Binary[Ident[+], Ident[x], Ident[y]]]]]]"),
-      arguments("class A { x = 1; fn get() { return this.x } }", "Class[Ident[A], Seq[[Assign[Ident[x], Int[1]], Func[Call[Ident[get], []], Seq[[Return[Field[This[], x]]]]]]]]")
+      arguments("class A { x = 1; fn get() { return this.x } }", "Class[Ident[A], Seq[[Assign[Ident[x], Int[1]], Func[Call[Ident[get], []], Seq[[Return[Attr[This[], x]]]]]]]]")
     );
   }
 

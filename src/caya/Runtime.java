@@ -9,21 +9,21 @@ public final class Runtime {
 
   public static abstract class Value {
     public Value call(Value[] args) { throw new NotImplemented(); }
-    public Value get_attr(String field) { throw new NotImplemented(); }
-    public void set_attr(String field, Value value) { throw new NotImplemented(); }
+    public Value get_attr(String attr) { throw new NotImplemented(); }
+    public void set_attr(String attr, Value value) { throw new NotImplemented(); }
     public Value get_item(Value item) { throw new NotImplemented(); }
     public void set_item(Value item, Value value) { throw new NotImplemented(); }
   }
 
   public static abstract class BuiltinValue extends Value {
-    public abstract HashMap<String, Descriptor> fields();
+    public abstract HashMap<String, Descriptor> attrs();
 
-    public Value get_attr(String field) { return fields().get(field).get(this); }
+    public Value get_attr(String attr) { return attrs().get(attr).get(this); }
 
-    public static HashMap<String, Descriptor> resolve_fields(Class<?> cls, String[] fields, String[] methods) {
+    public static HashMap<String, Descriptor> resolve_attrs(Class<?> cls, String[] props, String[] methods) {
       var descriptors = new HashMap<String, Descriptor>();
-      for(var field : fields) {
-        descriptors.put(field, new BuiltinProperty(get_method(cls, field)));
+      for(var prop : props) {
+        descriptors.put(prop, new BuiltinProperty(get_method(cls, prop)));
       }
       for(var method : methods) {
         descriptors.put(method, new BuiltinMethod(find_unique(cls, method)));

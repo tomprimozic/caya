@@ -23,7 +23,7 @@ sealed public interface Node {
   record Bool(Location loc, boolean value) implements Node {}
   record Str(Location loc, String value) implements Node {}
   record None(Location loc) implements Node {}
-  record Field(Location loc, Node expr, String field) implements Node {}
+  record Attr(Location loc, Node expr, String attr) implements Node {}
   record Array(Location loc, List<Node> items) implements Node {}
   record Item(Location loc, Node expr, List<Node> items) implements Node {}
   record Call(Location loc, Node fn, List<Node> args) implements Node {}

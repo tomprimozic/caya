@@ -67,7 +67,7 @@ public final class Interpreter {
         case Node.Bool(var __, var value) -> value ? TRUE : FALSE;
         case Node.Ident(var __, var name) -> get(name);
         case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
-        case Node.Field(var __, var expr, var field) -> eval(expr).get_attr(field);
+        case Node.Attr(var __, var expr, var attr) -> eval(expr).get_attr(attr);
         case Node.Call(var __, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
         case Node.Seq(var __, var exprs) -> {
           if(exprs.isEmpty()) yield NONE;

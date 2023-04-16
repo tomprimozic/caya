@@ -106,7 +106,7 @@ term:
   | NONE                            { $$ = none(@$); }
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | THIS                            { $$ = this_(@$); }
-  | term "." IDENT                  { $$ = field(@$, $1, $3); }
+  | term "." IDENT                  { $$ = attr(@$, $1, $3); }
   | "(" expr ")"                    { $$ = paren(@$, $2); }
   | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "[" exprs0 "]"                  { $$ = array(@$, $2); }

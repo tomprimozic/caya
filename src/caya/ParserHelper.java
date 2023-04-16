@@ -82,7 +82,7 @@ public class ParserHelper {
   Node bool(Location loc, boolean value) { return new Bool(loc, value); }
   Node str(Location loc, String value) { return new Str(loc, value); }
   Node none(Location loc) { return new None(loc); }
-  Node field(Location loc, Node obj, String field) { return new Field(loc, obj, field); }
+  Node attr(Location loc, Node obj, String attr) { return new Attr(loc, obj, attr); }
   Node paren(Location loc, Node expr) { return expr; }    // TODO: should be a different Node, to update location
   Node array(Location loc, List<Node> items) { return new Array(loc, items); }
   Node call(Location loc, Node fn, List<Node> args) { return new Call(loc, fn, args); }

@@ -42,8 +42,8 @@ public final class Builtins {
     public Int size() { return new Int(value.length()); }
     public Value join(List items) { return new Str(items.data.mkString(this.value)); }
 
-    public final HashMap<String, Descriptor> fields() { return FIELDS; }
-    public static final HashMap<String, Descriptor> FIELDS = BuiltinValue.resolve_fields(Str.class,
+    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Str.class,
       new String[] {"size"},
       new String[] {"join"}
     );
@@ -67,8 +67,8 @@ public final class Builtins {
     public Value get_item(Value item) { return this.data.apply(Interpreter.to_int(item).value.intValueExact()); }
     public void set_item(Value item, Value value) { data.update(Interpreter.to_int(item).value.intValueExact(), value); }
 
-    public final HashMap<String, Descriptor> fields() { return FIELDS; }
-    public static final HashMap<String, Descriptor> FIELDS = BuiltinValue.resolve_fields(List.class,
+    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
       new String[] {"size"},
       new String[] {"push", "append", "pop", "shift"}
     );
@@ -85,8 +85,8 @@ public final class Builtins {
     public Value get_item(Value key) { return data.get(key); }
     public void set_item(Value key, Value value) { data.put(key, value); }
 
-    public final HashMap<String, Descriptor> fields() { return FIELDS; }
-    public static final HashMap<String, Descriptor> FIELDS = BuiltinValue.resolve_fields(List.class,
+    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
       new String[] {"size"},
       new String[] {"clear"}
     );
