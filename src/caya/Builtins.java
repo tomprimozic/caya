@@ -146,13 +146,14 @@ public final class Builtins {
     public Value pop() { return data.removeHead(true); }
     public Value shift() { return data.removeLast(true); }
     public Int size() { return new Int(data.size()); }
+    public Value last() { return data.last(); }
 
     public Value get_item(Value item) { return this.data.apply(Interpreter.to_int(item).value.intValueExact()); }
     public void set_item(Value item, Value value) { data.update(Interpreter.to_int(item).value.intValueExact(), value); }
 
     public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
-      new String[] {"size"},
+      new String[] {"size", "last"},
       new String[] {"push", "append", "pop", "shift"}
     );
   }

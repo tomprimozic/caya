@@ -50,7 +50,8 @@ public class InterpreterTest {
       arguments("1 <= 2 > -1 < 7 == 7 != 4", "true"),
       arguments("l = []; l.append((l.append(0); 1) <= (l.append(1); 2) > (l.append(2); 6) < (l.append(3); 17)); l", "[0, 1, 2, false]"),
       arguments("l = []; while l.size < 4 { l.append(0) }; l", "[0, 0, 0, 0]"),
-      arguments("while false {}", "none")
+      arguments("while false {}", "none"),
+      arguments("[6, 2, 8].last", "8")
     );
   }
 
