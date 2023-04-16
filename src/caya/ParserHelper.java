@@ -91,6 +91,14 @@ public class ParserHelper {
   Node assign(Location loc, Node pattern, Node value) { return new Assign(loc, pattern, value); }
   Node binary(Location loc, Node left, Ident op, Node right) { return new Binary(loc, op, left, right); }
   Node unary(Location loc, Ident op, Node expr) { return new Unary(loc, op, expr); }
-  Node if_expr(Location loc, Node cond, Node then, Node else_) { return new If(loc, cond, then, else_); }
+  Node if_expr(Location loc, Node cond, Node then, Node else_) { return new IfElse(loc, cond, then, else_); }
   Node cmp(Location loc, List<Node> parts) { return new Cmp(loc, parts); }
+  Node class_(Location loc, Node declaration, Seq body) { return new Node.Class(loc, declaration, body); }
+  Node this_(Location loc) { return new This(loc); }
+  Node func(Location loc, Node declaration, Seq body) { return new Func(loc, declaration, body); }
+  Node while_(Location loc, Node cond, Seq body) { return new While(loc, cond, body); }
+  Node if_block(Location loc, Node cond, Seq then) { return new If(loc, cond, then); }
+  Node if_block(Location loc, Node cond, Seq then, Node else_) { return new IfElse(loc, cond, then, else_); }
+  Node return_(Location loc) { return new Return(loc, null); }
+  Node return_(Location loc, Node value) { return new Return(loc, value); }
 }

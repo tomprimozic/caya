@@ -86,6 +86,8 @@ integer = [0-9](_?[0-9]+)*
   ")"                         { return token(RPAREN); }
   "["                         { return token(LBRACKET); }
   "]"                         { return token(RBRACKET); }
+  "{"                         { return token(LBRACE); }
+  "}"                         { return token(RBRACE); }
 
   /* keywords */
   "none"                      { return token(NONE); }
@@ -117,6 +119,7 @@ integer = [0-9](_?[0-9]+)*
   "record"                    { return token(RECORD); }
   "struct"                    { return token(STRUCT); }
   "class"                     { return token(CLASS); }
+  "this"                      { return token(THIS); }
   "forall"                    { return token(FORALL); }
   "exists"                    { return token(EXISTS); }
   "do"                        { return token(DO); }

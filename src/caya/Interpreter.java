@@ -85,7 +85,8 @@ public final class Interpreter {
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).value.add(to_int(eval(right)).value));
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "-" -> new Int(to_int(eval(left)).value.subtract(to_int(eval(right)).value));
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "*" -> new Int(to_int(eval(left)).value.multiply(to_int(eval(right)).value));
-        case Node.If(var __, var cond, var then, var else_) -> to_bool(eval(cond)).value ? eval(then) : eval(else_);
+        case Node.If(var __, var cond, var then) -> to_bool(eval(cond)).value ? eval(then) : NONE;
+        case Node.IfElse(var __, var cond, var then, var else_) -> to_bool(eval(cond)).value ? eval(then) : eval(else_);
         case Node.Assign(var __, Node.Call(var ___, Node.Ident(var ____, String fn), var params), var body) -> {
           var param_names = new String[params.size()];
           for(int i = 0; i < params.size(); i++) {

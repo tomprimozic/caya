@@ -27,14 +27,15 @@
 
 %token <String> IDENT INTEGER STRING ERROR
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
-%token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS FORALL EXISTS DO TRY CATCH THROW
+%token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS THIS FORALL EXISTS DO TRY CATCH THROW
 %token DOT "." COMMA "," SEMICOLON ";" ASSIGN "="
 %token PLUS "+" MINUS "-" STAR "*"
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
-%token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]"
+%token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
 
-%type <Node> statement expr arith term
+%type <Node> statement block_if expr arith term
 %type <List<Node>> exprs0 exprs1 statements0 statements1 cmp
+%type <Node.Seq> block
 %type <String> cmp_op
 
 %left "+" "-"
@@ -57,6 +58,20 @@ statements1:
 statement:
     expr
   | expr "=" expr                   { $$ = assign(@$, $1, $3); }
+  | RETURN                          { $$ = return_(@$); }
+  | RETURN expr                     { $$ = return_(@$, $2); }
+  | block_if
+  | WHILE expr block                { $$ = while_(@$, $2, $3); }
+  | FUNC expr block                 { $$ = func(@$, $2, $3); }
+  | CLASS expr block                { $$ = class_(@$, $2, $3); }
+
+block_if:
+    IF expr block                   { $$ = if_block(@$, $2, $3); }
+  | IF expr block ELSE block        { $$ = if_block(@$, $2, $3, $5); }
+  | IF expr block ELSE block_if     { $$ = if_block(@$, $2, $3, $5); }
+
+block:
+    "{" statements0 "}"             { $$ = seq(@$, $2); }
 
 expr:
     arith
@@ -90,6 +105,7 @@ term:
   | STRING                          { $$ = str(@$, $1); }
   | NONE                            { $$ = none(@$); }
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
+  | THIS                            { $$ = this_(@$); }
   | term "." IDENT                  { $$ = field(@$, $1, $3); }
   | "(" expr ")"                    { $$ = paren(@$, $2); }
   | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }

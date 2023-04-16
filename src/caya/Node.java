@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import caya.Parser.Location;
 
 sealed public interface Node {
-  final static Pattern remove_loc = Pattern.compile("loc=Pos\\[pos=\\d+\\](\\-Pos\\[pos=\\d+\\])?, ");
+  final static Pattern remove_loc = Pattern.compile("loc=Pos\\[pos=\\d+\\](\\-Pos\\[pos=\\d+\\])?(, |(?=]))");
   final static Pattern remove_field_names = Pattern.compile("(?<=\\[|, )[_a-z]+=");
   public static String show(Node n) {
     var s = remove_loc.matcher(n.toString()).replaceAll("");
@@ -31,6 +31,12 @@ sealed public interface Node {
   record Assign(Location loc, Node pattern, Node value) implements Node {}
   record Unary(Location loc, Ident op, Node expr) implements Node {}
   record Binary(Location loc, Ident op, Node left, Node right) implements Node {}
-  record If(Location loc, Node cond, Node then, Node else_) implements Node {}
+  record If(Location loc, Node cond, Node then) implements Node {}
+  record IfElse(Location loc, Node cond, Node then, Node else_) implements Node {}
   record Cmp(Location loc, List<Node> parts) implements Node {}
+  record Func(Location loc, Node declaration, Seq body) implements Node {}
+  record Return(Location loc, Node value) implements Node {}
+  record While(Location loc, Node cond, Seq body) implements Node {}
+  record Class(Location loc, Node declaration, Seq body) implements Node {}
+  record This(Location loc) implements Node {}
 }
