@@ -11,7 +11,9 @@ public final class Interpreter {
   public static final class InterpreterError extends RuntimeException {
     public InterpreterError(String msg) { super(msg); }
   }
-  public static final class NotImplemented extends RuntimeException {}
+  public static final class NotImplemented extends RuntimeException {
+    public NotImplemented(String reason) { super(reason); }
+  }
 
   public static final class ReturnException extends RuntimeException {
     Value value;
@@ -176,7 +178,7 @@ public final class Interpreter {
         case Node.Return(var __, var expr) -> {
           throw new ReturnException(expr != null ? eval(expr) : NONE);
         }
-        default -> throw new NotImplemented();
+        default -> throw new NotImplemented(Node.show(n));
       };
       return result;
     }
@@ -190,13 +192,38 @@ public final class Interpreter {
           case Node.VarAssign(var _____, Node.Ident(var ______, var field_name), var value) -> {
             var field = fields.size();
             fields.put(field_name, field);
+            if(attrs.containsKey(field_name)) {
+              throw new InterpreterError("duplicated attribute: " + field_name);
+            }
             attrs.put(field_name, new Obj.Field(field));
             constructor_statements.add(new Node.Assign(null, new Node.Attr(null, new Node.This(null), field_name), value));
+          }
+          case Node.Func(var _____, Node.Attr(var ______, Node.This(var _______), var attr), var body) -> {
+            var getter = new Obj.Method(new String[0], this, body);
+            switch (attrs.get(attr)) {
+              case null -> attrs.put(attr, new Obj.Property(getter, null));
+              case Obj.Property(var existing_getter, var setter) -> {
+                if(existing_getter != null) { throw new InterpreterError("duplicated property getter: " + attr); }
+                attrs.put(attr, new Obj.Property(getter, setter));
+              }
+              default -> throw new InterpreterError("duplicated attribute: " + attr);
+            }
+          }
+          case Node.Func(var _____, Node.Assign(var ______, Node.Attr(var _______, Node.This(var ________), var attr), Node.Ident(var _________, var param)), var body) -> {
+            var setter = new Obj.Method(new String[] {param}, this, body);
+            switch (attrs.get(attr)) {
+              case null -> attrs.put(attr, new Obj.Property(null, setter));
+              case Obj.Property(var getter, var existing_setter) -> {
+                if(existing_setter != null) { throw new InterpreterError("duplicated property setter: " + attr); }
+                attrs.put(attr, new Obj.Property(getter, setter));
+              }
+              default -> throw new InterpreterError("duplicated attribute: " + attr);
+            }
           }
           case Node.Func(var _____, Node.Call(var ______, Node.Ident(var _______, var method_name), var params), var body) -> {
             attrs.put(method_name, new Obj.Method(get_params(params), this, body));
           }
-          default -> throw new NotImplemented();
+          default -> throw new NotImplemented(Node.show(declaration));
         }
       }
       Obj.Method constructor = new Obj.Method(new String[0], this, new Node.Seq(null, constructor_statements));

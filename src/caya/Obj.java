@@ -43,7 +43,7 @@ public final class Obj extends Value {
 
   public static interface Descriptor {
     public Value get(Obj obj);
-    public default void set(Obj obj, Value value) { throw new Interpreter.NotImplemented(); }
+    public default void set(Obj obj, Value value) { throw new Interpreter.NotImplemented(this.getClass() + ".set"); }
   }
 
   record Field(int field) implements Descriptor {
@@ -53,12 +53,24 @@ public final class Obj extends Value {
 
   record Method(String[] params, Interpreter.Scope closure, Node body) implements Descriptor {
     public Value get(Obj obj) { return new BoundMethod(obj, this); }
+    public Value call(Obj obj, Value[] args) { return Interpreter.eval_function(params, closure, body, args, obj); }
+  }
+
+  record Property(Method getter, Method setter) implements Descriptor {
+    public Property(Method getter, Method setter) {
+      this.getter = getter;
+      this.setter = setter;
+      assert getter == null || getter.params.length == 0;
+      assert setter == null || setter.params.length == 1;
+    }
+    public Value get(Obj obj) { return getter.call(obj, new Value[0]); }
+    public void set(Obj obj, Value value) { setter.call(obj, new Value[] {value}); }
   }
 
   public final static class BoundMethod extends Value {
     public final Obj obj;
     public final Method method;
     public BoundMethod(Obj obj, Method method) { this.obj = obj; this.method = method; }
-    public Value call(Value[] args) { return Interpreter.eval_function(method.params, method.closure, method.body, args, obj); }
+    public Value call(Value[] args) { return method.call(obj, args); }
   }
 }

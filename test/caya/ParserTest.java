@@ -54,7 +54,9 @@ public class ParserTest {
       arguments("while a < 1 { a = a + 1 }", "While[Cmp[[Ident[a], Ident[<], Int[1]]], Seq[[Assign[Ident[a], Binary[Ident[+], Ident[a], Int[1]]]]]]"),
       arguments("fn f(x, y) { return x + y }", "Func[Call[Ident[f], [Ident[x], Ident[y]]], Seq[[Return[Binary[Ident[+], Ident[x], Ident[y]]]]]]"),
       arguments("class A { var x = 1; fn get() { return this.x } }", "Class[Ident[A], Seq[[VarAssign[Ident[x], Int[1]], Func[Call[Ident[get], []], Seq[[Return[Attr[This[], x]]]]]]]]"),
-      arguments("var y; var x = 16", "Seq[[Var[Ident[y]], VarAssign[Ident[x], Int[16]]]]")
+      arguments("var y; var x = 16", "Seq[[Var[Ident[y]], VarAssign[Ident[x], Int[16]]]]"),
+      arguments("x = (x = 1)", "Assign[Ident[x], Seq[[Assign[Ident[x], Int[1]]]]]"),
+      arguments("class A { fn x = y { 1 } }", "Class[Ident[A], Seq[[Func[Assign[Ident[x], Ident[y]], Seq[[Int[1]]]]]]]")
     );
   }
 

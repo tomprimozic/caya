@@ -33,7 +33,7 @@
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
 
-%type <Node> statement block_if expr arith term
+%type <Node> statement block_if assign expr arith term
 %type <List<Node>> exprs0 exprs1 statements0 statements1 cmp
 %type <Node.Seq> block
 %type <String> cmp_op
@@ -52,12 +52,13 @@ statements0:
   | statements1
 
 statements1:
-    statement                       { $$ = list($1); }
+    expr                            { $$ = list($1); }
+  | statement                       { $$ = list($1); }
+  | statements1 ";" expr            { $$ = list($1, $3); }
   | statements1 ";" statement       { $$ = list($1, $3); }
 
 statement:
-    expr
-  | expr "=" expr                   { $$ = assign(@$, $1, $3); }
+    assign
   | VAR expr                        { $$ = var(@$, $2); }
   | VAR expr "=" expr               { $$ = var(@$, $2, $4); }
   | RETURN                          { $$ = return_(@$); }
@@ -65,7 +66,11 @@ statement:
   | block_if
   | WHILE expr block                { $$ = while_(@$, $2, $3); }
   | FUNC expr block                 { $$ = func(@$, $2, $3); }
+  | FUNC assign block               { $$ = func(@$, $2, $3); }
   | CLASS expr block                { $$ = class_(@$, $2, $3); }
+
+assign:
+    expr "=" expr                   { $$ = assign(@$, $1, $3); }
 
 block_if:
     IF expr block                   { $$ = if_block(@$, $2, $3); }
@@ -110,6 +115,8 @@ term:
   | THIS                            { $$ = this_(@$); }
   | term "." IDENT                  { $$ = attr(@$, $1, $3); }
   | "(" expr ")"                    { $$ = paren(@$, $2); }
+  | "(" statement ")"               { $$ = seq(@$, list($2)); }
+  | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "[" exprs0 "]"                  { $$ = array(@$, $2); }
   | term "(" exprs0 ")"             { $$ = call(@$, $1, $3); }

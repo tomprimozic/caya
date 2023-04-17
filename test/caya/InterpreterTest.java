@@ -57,7 +57,8 @@ public class InterpreterTest {
       arguments("x = 1; f() = (x = 4; 0); f(); x", "4"),
       arguments("x = 1; f() = (var x = 4; 0); f(); x", "1"),
       arguments("class A { var x = 0; fn get() { return this.x }; fn set(y) { this.x = y } }; a = A(); b = A(); [a.get(), b.get(), a.set(6), a.get(), b.get(), b.set(2), a.get(), b.get()]", "[0, 0, none, 6, 0, none, 6, 2]"),
-      arguments("class X { var a = 0 }; x = X(); x.a = 2; x.a", "2")
+      arguments("class X { var a = 0 }; x = X(); x.a = 2; x.a", "2"),
+      arguments("class X { var a = 0; fn this.b { this.a }; fn this.b = x { this.a = x } }; x = X(); x.b = 7; [x.a, x.b]", "[7, 7]")
     );
   }
 
@@ -72,6 +73,7 @@ public class InterpreterTest {
     "while 1 {}",
     "class X { var a = 0 }; x = X(); x.b = 2",
     "class X { var a = 0 }; x = X(); x.b",
+    "class X { var a = 0; var a = 1 }"
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));
