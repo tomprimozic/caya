@@ -101,6 +101,6 @@ public class ParserHelper {
   Node while_(Location loc, Node cond, Seq body) { return new While(loc, cond, body); }
   Node if_block(Location loc, Node cond, Seq then) { return new If(loc, cond, then); }
   Node if_block(Location loc, Node cond, Seq then, Node else_) { return new IfElse(loc, cond, then, else_); }
-  Node return_(Location loc) { return new Return(loc, null); }
+  Node return_(Location loc) { return new Return(loc, null); }    // TODO: don't use `null`
   Node return_(Location loc, Node value) { return new Return(loc, value); }
 }

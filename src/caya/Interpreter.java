@@ -1,6 +1,7 @@
 package caya;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
 import caya.Runtime.Value;
 import caya.Builtins.*;
@@ -11,6 +12,11 @@ public final class Interpreter {
     public InterpreterError(String msg) { super(msg); }
   }
   public static final class NotImplemented extends RuntimeException {}
+
+  public static final class ReturnException extends RuntimeException {
+    Value value;
+    public ReturnException(Value value) { this.value = value; }
+  }
 
   public static Int to_int(Value value) {
     if(value instanceof Int i) {
@@ -28,11 +34,27 @@ public final class Interpreter {
     }
   }
 
+  public static Value eval_function(String[] params, Scope closure, Node body, Value[] args, Obj this_obj) {
+    if(params.length != args.length) {
+      throw new Interpreter.InterpreterError("expected " + params.length + " arguments, got " + args.length);
+    }
+    var scope = new Interpreter.Scope(closure, this_obj);
+    for(int i = 0; i < params.length; i++) {
+      scope.declare(params[i], args[i]);
+    }
+    try {
+      return scope.eval(body);
+    } catch (Interpreter.ReturnException e) {
+      return e.value;
+    }
+  }
+
   public static final class Scope {
     private final HashMap<String, Value> bindings = new HashMap<>();
     private final Scope parent;
-    public Scope() { this.parent = null; }
-    public Scope(Scope parent) { this.parent = parent; }
+    private final Obj this_obj;
+    public Scope() { this.parent = null; this.this_obj = null; }
+    public Scope(Scope parent, Obj this_obj) { this.parent = parent; this.this_obj = this_obj; }
 
     public Value lookup(String binding) {
       if(bindings.containsKey(binding)) {
@@ -66,6 +88,18 @@ public final class Interpreter {
       this.bindings.put(binding, value);
     }
 
+    private String[] get_params(java.util.List<Node> params) {
+      var param_names = new String[params.size()];
+      for(int i = 0; i < params.size(); i++) {
+        if(params.get(i) instanceof Node.Ident(var _____, var name)) {
+          param_names[i] = name;
+        } else {
+          throw new InterpreterError("parameters must be identifiers");
+        }
+      }
+      return param_names;
+    }
+
     public Value eval(Node n) {
       Value result = switch(n) {
         case Node.Int(var __, var value) -> new Int(value);
@@ -88,6 +122,7 @@ public final class Interpreter {
           }
         }
         case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> { assign(name, eval(expr)); yield NONE; }
+        case Node.Assign(var __, Node.Attr(var ___, var obj, var attr), var expr) -> { eval(obj).set_attr(attr, eval(expr)); yield NONE; }
         case Node.VarAssign(var __, Node.Ident(var ___, var name), var expr) -> { declare(name, eval(expr)); yield NONE; }
         case Node.Unary(var __, Node.Ident(var ___, var op), var expr) when op == "-" -> new Int(to_int(eval(expr)).value.negate());
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).value.add(to_int(eval(right)).value));
@@ -96,15 +131,7 @@ public final class Interpreter {
         case Node.If(var __, var cond, var then) -> to_bool(eval(cond)).value ? eval(then) : NONE;
         case Node.IfElse(var __, var cond, var then, var else_) -> to_bool(eval(cond)).value ? eval(then) : eval(else_);
         case Node.Assign(var __, Node.Call(var ___, Node.Ident(var ____, String fn), var params), var body) -> {
-          var param_names = new String[params.size()];
-          for(int i = 0; i < params.size(); i++) {
-            if(params.get(i) instanceof Node.Ident(var _____, var name)) {
-              param_names[i] = name;
-            } else {
-              throw new InterpreterError("parameters must be identifiers");
-            }
-          }
-          assign(fn, new Runtime.Function(param_names, this, body));
+          assign(fn, new Runtime.Function(get_params(params), this, body));
           yield NONE;
         }
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
@@ -138,9 +165,42 @@ public final class Interpreter {
           while(to_bool(eval(cond)).value) { eval(body); }
           yield NONE;
         }
+        case Node.This(var __) -> {
+          if(this_obj == null) { throw new InterpreterError("invalid `this` outside of class"); }
+          yield this_obj;
+        }
+        case Node.Class(var __, Node.Ident(var ___, var name), Node.Seq(var ____, var declarations)) -> {
+          declare(name, class_declaration(name, declarations));
+          yield NONE;
+        }
+        case Node.Return(var __, var expr) -> {
+          throw new ReturnException(expr != null ? eval(expr) : NONE);
+        }
         default -> throw new NotImplemented();
       };
       return result;
+    }
+
+    private Obj.Cls class_declaration(String name, java.util.List<Node> declarations) {
+      var fields = new HashMap<String, Integer>();
+      var constructor_statements = new ArrayList<Node>();
+      HashMap<String, Obj.Descriptor> attrs = new HashMap<String, Obj.Descriptor>();
+      for(var declaration : declarations) {
+        switch(declaration) {
+          case Node.VarAssign(var _____, Node.Ident(var ______, var field_name), var value) -> {
+            var field = fields.size();
+            fields.put(field_name, field);
+            attrs.put(field_name, new Obj.Field(field));
+            constructor_statements.add(new Node.Assign(null, new Node.Attr(null, new Node.This(null), field_name), value));
+          }
+          case Node.Func(var _____, Node.Call(var ______, Node.Ident(var _______, var method_name), var params), var body) -> {
+            attrs.put(method_name, new Obj.Method(get_params(params), this, body));
+          }
+          default -> throw new NotImplemented();
+        }
+      }
+      Obj.Method constructor = new Obj.Method(new String[0], this, new Node.Seq(null, constructor_statements));
+      return new Obj.Cls(name, fields.size(), constructor, attrs);
     }
   }
 

@@ -14,15 +14,6 @@ public final class Runtime {
     public final Interpreter.Scope closure;
     public final Node body;
     public Function(String[] params, Interpreter.Scope closure, Node body) { this.params = params; this.closure = closure; this.body = body; }
-    public Value call(Value[] args) {
-      if(params.length != args.length) {
-        throw new Interpreter.InterpreterError("expected " + params.length + " arguments, got " + args.length);
-      }
-      var scope = new Interpreter.Scope(this.closure);
-      for(int i = 0; i < params.length; i++) {
-        scope.declare(params[i], args[i]);
-      }
-      return scope.eval(this.body);
-    }
+    public Value call(Value[] args) { return Interpreter.eval_function(params, closure, body, args, null); }
   }
 }

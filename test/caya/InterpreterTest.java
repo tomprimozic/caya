@@ -42,6 +42,7 @@ public class InterpreterTest {
       arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]"),
       arguments("f(x) = x + 1", "none"),
       arguments("f(x) = x + 1; f(3)", "4"),
+      arguments("f(x) = (return x + 1; 7); f(4)", "5"),
       arguments("f(x) = x + y; y = 4; f(3)", "7"),
       arguments("f(x) = x + y; y = 4; a = []; a.append(f(3)); y = -9; a.append(f(3)); a", "[7, -6]"),
       arguments("m() = (x = 0; get() = x; set(y) = (x = y; -1); [get, set]); a = m(); b = m(); [a[0](), b[0](), a[1](4), b[1](9), a[0](), b[0]()]", "[0, 0, -1, -1, 4, 9]"),
@@ -54,7 +55,9 @@ public class InterpreterTest {
       arguments("[6, 2, 8].last", "8"),
       arguments("x = 1; f(x) = 0; f(3); x", "1"),
       arguments("x = 1; f() = (x = 4; 0); f(); x", "4"),
-      arguments("x = 1; f() = (var x = 4; 0); f(); x", "1")
+      arguments("x = 1; f() = (var x = 4; 0); f(); x", "1"),
+      arguments("class A { var x = 0; fn get() { return this.x }; fn set(y) { this.x = y } }; a = A(); b = A(); [a.get(), b.get(), a.set(6), a.get(), b.get(), b.set(2), a.get(), b.get()]", "[0, 0, none, 6, 0, none, 6, 2]"),
+      arguments("class X { var a = 0 }; x = X(); x.a = 2; x.a", "2")
     );
   }
 
@@ -66,7 +69,9 @@ public class InterpreterTest {
     "[][true]",
     "f(x) = x + y; f(3)",
     "m() = (x = 0; 1); m(); x",
-    "while 1 {}"
+    "while 1 {}",
+    "class X { var a = 0 }; x = X(); x.b = 2",
+    "class X { var a = 0 }; x = X(); x.b",
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));
