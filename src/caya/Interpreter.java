@@ -1,6 +1,7 @@
 package caya;
 
 import java.util.HashMap;
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import caya.Runtime.Value;
@@ -20,17 +21,21 @@ public final class Interpreter {
     public ReturnException(Value value) { this.value = value; }
   }
 
-  public static Int to_int(Value value) {
+  public static BigInteger to_int(Value value) {
     if(value instanceof Int i) {
-      return i;
+      return i.value;
     } else {
       throw new InterpreterError("expected int, got " + value);
     }
   }
 
-  public static Bool to_bool(Value value) {
+  public static int to_int32(Value value) {
+    return to_int(value).intValueExact();
+  }
+
+  public static boolean to_bool(Value value) {
     if(value instanceof Bool b) {
-      return b;
+      return b.value;
     } else {
       throw new InterpreterError("expected bool, got " + value);
     }
@@ -126,45 +131,20 @@ public final class Interpreter {
         case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> { assign(name, eval(expr)); yield NONE; }
         case Node.Assign(var __, Node.Attr(var ___, var obj, var attr), var expr) -> { eval(obj).set_attr(attr, eval(expr)); yield NONE; }
         case Node.VarAssign(var __, Node.Ident(var ___, var name), var expr) -> { declare(name, eval(expr)); yield NONE; }
-        case Node.Unary(var __, Node.Ident(var ___, var op), var expr) when op == "-" -> new Int(to_int(eval(expr)).value.negate());
-        case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).value.add(to_int(eval(right)).value));
-        case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "-" -> new Int(to_int(eval(left)).value.subtract(to_int(eval(right)).value));
-        case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "*" -> new Int(to_int(eval(left)).value.multiply(to_int(eval(right)).value));
-        case Node.If(var __, var cond, var then) -> to_bool(eval(cond)).value ? eval(then) : NONE;
-        case Node.IfElse(var __, var cond, var then, var else_) -> to_bool(eval(cond)).value ? eval(then) : eval(else_);
+        case Node.Unary(var __, Node.Ident(var ___, var op), var expr) when op == "-" -> new Int(to_int(eval(expr)).negate());
+        case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).add(to_int(eval(right))));
+        case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "-" -> new Int(to_int(eval(left)).subtract(to_int(eval(right))));
+        case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "*" -> new Int(to_int(eval(left)).multiply(to_int(eval(right))));
+        case Node.If(var __, var cond, var then) -> to_bool(eval(cond)) ? eval(then) : NONE;
+        case Node.IfElse(var __, var cond, var then, var else_) -> to_bool(eval(cond)) ? eval(then) : eval(else_);
         case Node.Assign(var __, Node.Call(var ___, Node.Ident(var ____, String fn), var params), var body) -> {
           assign(fn, new Runtime.Function(get_params(params), this, body));
           yield NONE;
         }
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
-        case Node.Cmp(var __, var items) -> {
-          assert items.size() >= 3 && items.size() % 2 == 1;
-          var left = to_int(eval(items.get(0)));
-          for(int i = 1; i < items.size(); i += 2) {
-            var op = switch(items.get(i)) {
-              case Node.Ident(var ___, var name) -> name;
-              default -> { assert false; yield null; }
-            };
-            var right = to_int(eval(items.get(i + 1)));
-            var cmp = left.value.compareTo(right.value);
-            var cmp_result = switch(op) {
-              case "<" -> cmp < 0;
-              case ">" -> cmp > 0;
-              case "<=" -> cmp <= 0;
-              case ">=" -> cmp >= 0;
-              case "!=" -> cmp != 0;
-              case "==" -> cmp == 0;
-              default -> throw new InterpreterError("unexpected comparison operator: " + op);
-            };
-            if(!cmp_result) {
-              yield FALSE;
-            }
-            left = right;
-          }
-          yield TRUE;
-        }
+        case Node.Cmp(var __, var items) -> eval_cmp(items) ? TRUE : FALSE;
         case Node.While(var __, var cond, var body) -> {
-          while(to_bool(eval(cond)).value) { eval(body); }
+          while(to_bool(eval(cond))) { eval(body); }
           yield NONE;
         }
         case Node.This(var __) -> {
@@ -228,6 +208,33 @@ public final class Interpreter {
       }
       Obj.Method constructor = new Obj.Method(new String[0], this, new Node.Seq(null, constructor_statements));
       return new Obj.Cls(name, fields.size(), constructor, attrs);
+    }
+
+    private boolean eval_cmp(java.util.List<Node> items) {
+      assert items.size() >= 3 && items.size() % 2 == 1;
+      var left = to_int(eval(items.get(0)));
+      for(int i = 1; i < items.size(); i += 2) {
+        var op = switch(items.get(i)) {
+          case Node.Ident(var ___, var name) -> name;
+          default -> { assert false; yield null; }
+        };
+        var right = to_int(eval(items.get(i + 1)));
+        var cmp = left.compareTo(right);
+        var cmp_result = switch(op) {
+          case "<" -> cmp < 0;
+          case ">" -> cmp > 0;
+          case "<=" -> cmp <= 0;
+          case ">=" -> cmp >= 0;
+          case "!=" -> cmp != 0;
+          case "==" -> cmp == 0;
+          default -> throw new InterpreterError("unexpected comparison operator: " + op);
+        };
+        if(!cmp_result) {
+          return false;
+        }
+        left = right;
+      }
+      return true;
     }
   }
 
