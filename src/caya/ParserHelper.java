@@ -70,6 +70,7 @@ public class ParserHelper {
 
   List<Node> list() { return new ArrayList<Node>(); }
   List<Node> list(Node node) { return new ArrayList<Node>(List.of(node)); }
+  List<Node> list(Node n1, Node n2) { return new ArrayList<Node>(List.of(n1, n2)); }
   List<Node> list(List<Node> ns, Node n) { ns.add(n); return ns; }
   List<Node> list(Node n, List<Node> ns) { ns.add(0, n); return ns; }
   List<Node> list(List<Node> ns, Node n1, Node n2) { ns.add(n1); ns.add(n2); return ns; }
@@ -78,12 +79,14 @@ public class ParserHelper {
   Node error(Location loc, String error) { Err e = new Err(loc, error); errors.add(e); return e; }
 
   Ident ident(Location loc, String name) { return new Ident(loc, name); }
+  Node atom(Location loc, String n) { return new Atom(loc, n); }
   Node integer(Location loc, String value) { return new Int(loc, parse_integer(value)); }
   Node bool(Location loc, boolean value) { return new Bool(loc, value); }
   Node str(Location loc, String value) { return new Str(loc, value); }
   Node none(Location loc) { return new None(loc); }
   Node attr(Location loc, Node obj, String attr) { return new Attr(loc, obj, attr); }
   Node paren(Location loc, Node expr) { return expr; }    // TODO: should be a different Node, to update location
+  Node tuple(Location loc, List<Node> items) { return new Tuple(loc, items); }
   Node array(Location loc, List<Node> items) { return new Array(loc, items); }
   Node call(Location loc, Node fn, List<Node> args) { return new Call(loc, fn, args); }
   Node item(Location loc, Node expr, List<Node> items) { return new Item(loc, expr, items); }
@@ -94,9 +97,13 @@ public class ParserHelper {
   Node binary(Location loc, Node left, Ident op, Node right) { return new Binary(loc, op, left, right); }
   Node unary(Location loc, Ident op, Node expr) { return new Unary(loc, op, expr); }
   Node if_expr(Location loc, Node cond, Node then, Node else_) { return new IfElse(loc, cond, then, else_); }
+  Node not(Location loc, Node expr) { return new Not(loc, expr); }
+  Node and(Location loc, List<Node> exprs) { return new And(loc, exprs); }
+  Node or(Location loc, List<Node> exprs) { return new Or(loc, exprs); }
   Node cmp(Location loc, List<Node> parts) { return new Cmp(loc, parts); }
   Node class_(Location loc, Node declaration, Seq body) { return new Node.Class(loc, declaration, body); }
   Node this_(Location loc) { return new This(loc); }
+  Node arrow(Location loc, List<Node> params, Node body) { return new Arrow(loc, params, body); }
   Node func(Location loc, Node declaration, Seq body) { return new Func(loc, declaration, body); }
   Node while_(Location loc, Node cond, Seq body) { return new While(loc, cond, body); }
   Node if_block(Location loc, Node cond, Seq then) { return new If(loc, cond, then); }

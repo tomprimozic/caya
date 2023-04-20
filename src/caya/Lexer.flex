@@ -79,6 +79,7 @@ integer = [0-9](_?[0-9]+)*
   "!="                        { return token(NE); }
   "<="                        { return token(LE); }
   ">="                        { return token(GE); }
+  "->"                        { return token(ARROW); }
   "-"                         { return token(MINUS); }
   "+"                         { return token(PLUS); }
   "*"                         { return token(STAR); }
@@ -131,6 +132,7 @@ integer = [0-9](_?[0-9]+)*
   \'                          { buffer.setLength(0); start_pos = yychar; yybegin(SINGLE_STRING); }
   \"                          { buffer.setLength(0); start_pos = yychar; yybegin(DOUBLE_STRING); }
   {integer}                   { return token(INTEGER, yytext()); }
+  `{identifier}               { return token(ATOM, yytext()); }
   {identifier}                { return token(IDENT, yytext()); }
 }
 
