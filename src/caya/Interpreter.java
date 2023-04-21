@@ -113,8 +113,10 @@ public final class Interpreter {
         case Node.Str(var __, var value) -> new Str(value);
         case Node.None(var __) -> NONE;
         case Node.Bool(var __, var value) -> value ? TRUE : FALSE;
+        case Node.Atom(var __, var name) -> new Atom(name);
         case Node.Ident(var __, var name) -> lookup(name);
         case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
+        case Node.Tuple(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));  // TODO: should be immutable, either Vector or Tuple
         case Node.Attr(var __, var expr, var attr) -> eval(expr).get_attr(attr);
         case Node.Call(var __, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
         case Node.Seq(var __, var exprs) -> {
@@ -135,10 +137,34 @@ public final class Interpreter {
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).add(to_int(eval(right))));
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "-" -> new Int(to_int(eval(left)).subtract(to_int(eval(right))));
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "*" -> new Int(to_int(eval(left)).multiply(to_int(eval(right))));
+        case Node.Not(var __, var expr) -> to_bool(eval(expr)) ? FALSE : TRUE;
+        case Node.And(var __, var exprs) -> {
+          assert exprs.size() >= 2;
+          for(var expr : exprs) {
+            if(!to_bool(eval(expr))) {
+              yield FALSE;
+            }
+          }
+          yield TRUE;
+        }
+        case Node.Or(var __, var exprs) -> {
+          assert exprs.size() >= 2;
+          for(var expr : exprs) {
+            if(to_bool(eval(expr))) {
+              yield TRUE;
+            }
+          }
+          yield FALSE;
+        }
         case Node.If(var __, var cond, var then) -> to_bool(eval(cond)) ? eval(then) : NONE;
         case Node.IfElse(var __, var cond, var then, var else_) -> to_bool(eval(cond)) ? eval(then) : eval(else_);
         case Node.Assign(var __, Node.Call(var ___, Node.Ident(var ____, String fn), var params), var body) -> {
           assign(fn, new Runtime.Function(get_params(params), this, body));
+          yield NONE;
+        }
+        case Node.Arrow(var __, var params, var body) -> new Runtime.Function(get_params(params), this, body);
+        case Node.Func(var __, Node.Call(var ___, Node.Ident(var ____, var fn_name), var params), var body) -> {
+          assign(fn_name, new Runtime.Function(get_params(params), this, body));
           yield NONE;
         }
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));

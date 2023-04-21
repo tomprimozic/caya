@@ -33,7 +33,7 @@ public class LexerTest {
       arguments("x1", "IDENT(x1)"),
       arguments("0x1", "INTEGER(0) IDENT(x1)"),
       arguments("0b6", "INTEGER(0) IDENT(b6)"),
-      arguments("`xa", "ATOM(`xa)"),
+      arguments("`xa", "ATOM(xa)"),
       arguments(".((...-++=]);;..[,=={}", ". ( ( . . . - + + = ] ) ; ; . . [ , == { }"),
       arguments("'a' '\\t' '\\'' \"f\"", "STRING(a) STRING(\t) STRING(') STRING(f)"),
       arguments("1 < x <= 5", "INTEGER(1) < IDENT(x) <= INTEGER(5)")

@@ -42,9 +42,17 @@ public class InterpreterTest {
       arguments("l = []; if true then l.append(1) else l.append(2); l", "[1]"),
       arguments("f(x) = x + 1", "none"),
       arguments("f(x) = x + 1; f(3)", "4"),
+      arguments("func f(x) { x + 1 }; f(3)", "4"),
       arguments("f(x) = (return x + 1; 7); f(4)", "5"),
+      arguments("func f(x) { return x + 1; 7 }; f(4)", "5"),
       arguments("f(x) = x + y; y = 4; f(3)", "7"),
+      arguments("f = (x) -> x + y; y = 4; f(3)", "7"),
+      arguments("f = x -> x + y; y = 4; f(3)", "7"),
+      arguments("f = () -> 1 + y; y = 4; f()", "5"),
       arguments("f(x) = x + y; y = 4; a = []; a.append(f(3)); y = -9; a.append(f(3)); a", "[7, -6]"),
+      arguments("f(x, y) = x + y + 1; f(5, 2)", "8"),
+      arguments("f = (x, y) -> x + y + 1; f(5, 2)", "8"),
+      arguments("func f(x, y) { x + y + 1 }; f(5, 2)", "8"),
       arguments("m() = (x = 0; get() = x; set(y) = (x = y; -1); [get, set]); a = m(); b = m(); [a[0](), b[0](), a[1](4), b[1](9), a[0](), b[0]()]", "[0, 0, -1, -1, 4, 9]"),
       arguments("1 < 5", "true"),
       arguments("1 > 5", "false"),
@@ -58,7 +66,19 @@ public class InterpreterTest {
       arguments("x = 1; f() = (var x = 4; 0); f(); x", "1"),
       arguments("class A { var x = 0; fn get() { return this.x }; fn set(y) { this.x = y } }; a = A(); b = A(); [a.get(), b.get(), a.set(6), a.get(), b.get(), b.set(2), a.get(), b.get()]", "[0, 0, none, 6, 0, none, 6, 2]"),
       arguments("class X { var a = 0 }; x = X(); x.a = 2; x.a", "2"),
-      arguments("class X { var a = 0; fn this.b { this.a }; fn this.b = x { this.a = x } }; x = X(); x.b = 7; [x.a, x.b]", "[7, 7]")
+      arguments("class X { var a = 0; fn this.b { this.a }; fn this.b = x { this.a = x } }; x = X(); x.b = 7; [x.a, x.b]", "[7, 7]"),
+      arguments("`g", "`g"),
+      arguments("`g.name", "g"),
+      arguments("x = 0; [(x = 1; false) and (x = 2; true) and (x = 3; true), x]", "[false, 1]"),
+      arguments("x = 0; [(x = 1; true) and (x = 2; false) and (x = 3; true), x]", "[false, 2]"),
+      arguments("x = 0; [(x = 1; true) and (x = 2; true) and (x = 3; false), x]", "[false, 3]"),
+      arguments("x = 0; [(x = 1; true) and (x = 2; true) and (x = 3; true), x]", "[true, 3]"),
+      arguments("x = 0; [(x = 1; true) or (x = 2; true) or (x = 3; true), x]", "[true, 1]"),
+      arguments("x = 0; [(x = 1; false) or (x = 2; true) or (x = 3; true), x]", "[true, 2]"),
+      arguments("x = 0; [(x = 1; false) or (x = 2; false) or (x = 3; true), x]", "[true, 3]"),
+      arguments("x = 0; [(x = 1; false) or (x = 2; false) or (x = 3; false), x]", "[false, 3]"),
+      arguments("x = 1, 2; x", "[1, 2]"),
+      arguments("fn f() { return 1, 2 }; f()", "[1, 2]")
     );
   }
 

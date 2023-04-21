@@ -132,7 +132,7 @@ integer = [0-9](_?[0-9]+)*
   \'                          { buffer.setLength(0); start_pos = yychar; yybegin(SINGLE_STRING); }
   \"                          { buffer.setLength(0); start_pos = yychar; yybegin(DOUBLE_STRING); }
   {integer}                   { return token(INTEGER, yytext()); }
-  `{identifier}               { return token(ATOM, yytext()); }
+  `{identifier}               { return token(ATOM, yytext().substring(1)); }
   {identifier}                { return token(IDENT, yytext()); }
 }
 

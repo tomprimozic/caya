@@ -64,7 +64,7 @@ public class ParserTest {
       arguments("return 1,2;f", "Seq[[Return[Tuple[[Int[1], Int[2]]]], Ident[f]]]"),
       arguments("return 1,2,; f", "Seq[[Return[Tuple[[Int[1], Int[2]]]], Ident[f]]]"),
       arguments("return 1,2,3", "Return[Tuple[[Int[1], Int[2], Int[3]]]]"),
-      arguments("a and b and `c", "And[[Ident[a], Ident[b], Atom[`c]]]"),
+      arguments("a and b and `c", "And[[Ident[a], Ident[b], Atom[c]]]"),
       arguments("a or b or not c", "Or[[Ident[a], Ident[b], Not[Ident[c]]]]"),
       arguments("var y, x = 16, 3", "VarAssign[Tuple[[Ident[y], Ident[x]]], Tuple[[Int[16], Int[3]]]]"),
       arguments("x -> x", "Arrow[[Ident[x]], Ident[x]]"),

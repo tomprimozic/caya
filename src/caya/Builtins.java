@@ -132,6 +132,20 @@ public final class Builtins {
     );
   }
 
+  public final static class Atom extends BuiltinValue {
+    public final String name;
+    public Atom(String name) { this.name = name; }
+    public String toString() { return "`" + name; }
+
+    public Str name() { return new Str(name); }
+
+    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Atom.class,
+      new String[] {"name"},
+      new String[] {}
+    );
+  }
+
   public final static class List extends BuiltinValue {
     public final ArrayDeque<Value> data;
     public List() { data = new ArrayDeque<>(4); }
