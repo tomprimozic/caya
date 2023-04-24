@@ -56,6 +56,11 @@ public final class Interpreter {
     }
   }
 
+  public static final Scope root = new Scope();
+  static {
+    root.assign("sign", new Builtins.Function("sign"));
+  }
+
   public static final class Scope {
     private final HashMap<String, Value> bindings = new HashMap<>();
     private final Scope parent;
@@ -264,5 +269,5 @@ public final class Interpreter {
     }
   }
 
-  public static Value eval(Node n) { return new Scope().eval(n); }
+  public static Value eval(Node n) { return new Scope(root, null).eval(n); }
 }

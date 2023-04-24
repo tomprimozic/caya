@@ -10,6 +10,14 @@ import scala.collection.ArrayOps;
 import caya.Runtime.Value;
 
 public final class Builtins {
+  public static final Int sign(Int value) {
+    return switch(value.value.signum()) {
+      case -1 -> new Int(BigInteger.ONE.negate());
+      case 0 -> new Int(BigInteger.ZERO);
+      case 1 -> new Int(BigInteger.ONE);
+      case default -> { throw new RuntimeException("impossible"); }
+    };
+  }
 
   public final static class Int extends Value {
     public final BigInteger value;
@@ -68,6 +76,31 @@ public final class Builtins {
       return args;
     }
   }
+
+  private static java.lang.reflect.Method find_unique(Class<?> cls, String name) {
+    java.lang.reflect.Method found = null;
+    for(var m : cls.getMethods()) {
+      if(m.getName().equals(name)) {
+        if(found != null) {
+          throw new RuntimeException("duplicated builting \"" + name + "\"!");
+        }
+        found = m;
+      }
+    }
+    if(found == null) {
+      throw new RuntimeException("no builtin \"" + name + "\"");
+    }
+    return found;
+  }
+
+  private static java.lang.reflect.Method get_method(Class<?> cls, String name, Class<?>... param_types) {
+    try {
+      return cls.getMethod(name, param_types);
+    } catch (SecurityException | NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static abstract class BuiltinValue extends Value {
     public abstract HashMap<String, Descriptor> attrs();
 
@@ -83,38 +116,20 @@ public final class Builtins {
       }
       return descriptors;
     }
-
-    private static java.lang.reflect.Method find_unique(Class<?> cls, String name) {
-      java.lang.reflect.Method found = null;
-      for(var m : cls.getMethods()) {
-        if(m.getName().equals(name)) {
-          if(found != null) {
-            throw new RuntimeException("duplicated builting \"" + name + "\"!");
-          }
-          found = m;
-        }
-      }
-      if(found == null) {
-        throw new RuntimeException("no builtin \"" + name + "\"");
-      }
-      return found;
-    }
-
-    private static java.lang.reflect.Method get_method(Class<?> cls, String name, Class<?>... param_types) {
-      try {
-        return cls.getMethod(name, param_types);
-      } catch (SecurityException | NoSuchMethodException e) {
-        throw new RuntimeException(e);
-      }
-    }
   }
 
   public static final class BoundMethod extends Value {
     public final Value obj;
     public final Method method;
     public BoundMethod(Value obj, Method method) { this.obj = obj; this.method = method; }
-
     public Value call(Value[] args) { return method.call(obj, args); }
+  }
+
+  public static final class Function extends Value {
+    public final Method method;
+    public Function(Method method) { this.method = method; }
+    public Function(String fn) { this(new Method(find_unique(Builtins.class, fn))); }
+    public Value call(Value[] args) { return method.call(null, args); }
   }
 
   public final static class Str extends BuiltinValue {
