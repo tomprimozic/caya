@@ -79,7 +79,9 @@ public class InterpreterTest {
       arguments("x = 0; [(x = 1; false) or (x = 2; false) or (x = 3; false), x]", "[false, 3]"),
       arguments("x = 1, 2; x", "[1, 2]"),
       arguments("fn f() { return 1, 2 }; f()", "[1, 2]"),
-      arguments("[sign(6), sign(-5), sign(0)]", "[1, -1, 0]")
+      arguments("[sign(6), sign(-5), sign(0)]", "[1, -1, 0]"),
+      arguments("x = 1; [(var x = 2; x), x]", "[2, 1]"),
+      arguments("x = 1; [(var x = x + 1; x), x]", "[2, 1]")
     );
   }
 

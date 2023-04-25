@@ -127,9 +127,10 @@ public final class Interpreter {
         case Node.Seq(var __, var exprs) -> {
           if(exprs.isEmpty()) yield NONE;
           var it = exprs.iterator();
+          var scope = new Scope(this, this_obj);
           while(true) {
             var expr = it.next();
-            var value = eval(expr);
+            var value = scope.eval(expr);
             if(!it.hasNext()) {
               yield value;
             }
