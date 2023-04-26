@@ -71,6 +71,7 @@ integer = [0-9](_?[0-9]+)*
   /* symbols */
   ","                         { return token(COMMA); }
   "."                         { return token(DOT); }
+  "..."                       { return token(DOTDOTDOT); }
   ";"                         { return token(SEMICOLON); }
   "="                         { return token(ASSIGN); }
   "<"                         { return token(LT); }

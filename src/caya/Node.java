@@ -27,6 +27,7 @@ sealed public interface Node {
   record Attr(Location loc, Node expr, String attr) implements Node {}
   record Arg(Location loc, Node name, Node value) implements Node {}
   record Record(Location loc, List<Node> fields) implements Node {}
+  record Spread(Location loc, Node expr) implements Node {}
   record Tuple(Location loc, List<Node> items) implements Node {}
   record Array(Location loc, List<Node> items) implements Node {}
   record Item(Location loc, Node expr, List<Node> items) implements Node {}

@@ -87,7 +87,8 @@ public class ParserTest {
       arguments("{x=1}", "Record[[Arg[Ident[x], Int[1]]]]"),
       arguments("{1=x}", "Record[[Arg[Int[1], Ident[x]]]]"),
       arguments("{x=1, y=2}", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]"),
-      arguments("{x=1, y=2, }", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]")
+      arguments("{x=1, y=2, }", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]"),
+      arguments("{x=3, ...a, y=a}", "Record[[Arg[Ident[x], Int[3]], Spread[Ident[a]], Arg[Ident[y], Ident[a]]]]")
     );
   }
 

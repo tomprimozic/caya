@@ -87,6 +87,7 @@ public class ParserHelper {
   Node attr(Location loc, Node obj, String attr) { return new Attr(loc, obj, attr); }
   Node arg(Location loc, Node name, Node value) { return new Arg(loc, name, value); }
   Node record(Location loc, List<Node> fields) { return new Node.Record(loc, fields); }
+  Node spread(Location loc, Node expr) { return new Spread(loc, expr); }
   Node paren(Location loc, Node expr) { return expr; }    // TODO: should be a different Node, to update location
   Node tuple(Location loc, List<Node> items) { return new Tuple(loc, items); }
   Node array(Location loc, List<Node> items) { return new Array(loc, items); }

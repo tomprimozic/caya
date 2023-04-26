@@ -87,7 +87,9 @@ public class InterpreterTest {
       arguments("{x=1}", "{x=1}"),
       arguments("{x=1}.x", "1"),
       arguments("{x=1, y=5}.y", "5"),
-      arguments("var a = 3; {x=1, a}", "{x=1, a=3}")
+      arguments("var a = 3; {x=1, a}", "{x=1, a=3}"),
+      arguments("var a = {x = 1, b = 2}; {x = 4, ...a, y=6}", "{x=1, y=6, b=2}"),
+      arguments("var a = {x = 1, b = 2}; {x = 4, ...a, b=6}", "{x=1, b=6}")
     );
   }
 
@@ -105,6 +107,8 @@ public class InterpreterTest {
     "class X { var a = 0; var a = 1 }",
     "{}.a",
     "{x=1, x=2}",
+    "a = 1; {...a}",
+    "a={}; {a=1, ...a, a=1}"
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));

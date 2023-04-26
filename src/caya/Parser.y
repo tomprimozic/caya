@@ -28,7 +28,7 @@
 %token <String> IDENT ATOM INTEGER STRING ERROR
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS THIS FORALL EXISTS DO TRY CATCH THROW
-%token DOT "." COMMA "," SEMICOLON ";" ASSIGN "=" ARROW "->"
+%token DOT "." DOTDOTDOT "..." COMMA "," SEMICOLON ";" ASSIGN "=" ARROW "->"
 %token PLUS "+" MINUS "-" STAR "*"
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
@@ -164,6 +164,7 @@ exprs2:
 
 arg:
     expr
+  | "..." expr                      { $$ = spread(@$, $2); }
   | expr "=" expr                   { $$ = arg(@$, $1, $3); }
   | expr error                      { $$ = error(@$, "arg"); }
   | error                           { $$ = error(@$, "arg"); }

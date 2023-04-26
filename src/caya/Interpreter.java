@@ -1,6 +1,7 @@
 package caya;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
@@ -129,21 +130,32 @@ public final class Interpreter {
         case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
         case Node.Tuple(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));  // TODO: should be immutable, either Vector or Tuple
         case Node.Record(var __, var fields) -> {
+          var seen_fields = new HashSet<String>();
           var record = new scala.collection.mutable.HashMap<String, Value>();
           for(var field : fields) {
             switch(field) {
               case Node.Arg(var ___, Node.Ident(var ____, var name), var expr) -> {
-                if(record.contains(name)) {
+                if(seen_fields.contains(name)) {
                   throw new InterpreterError("duplicated record field `" + name + "`");
                 }
+                seen_fields.add(name);
                 record.put(name, eval(expr));
               }
               case Node.Ident(var ___, var name) -> {
-                if(record.contains(name)) {
+                if(seen_fields.contains(name)) {
                   throw new InterpreterError("duplicated record field `" + name + "`");
                 }
                 // treat as variable name
+                seen_fields.add(name);
                 record.put(name, eval(field));
+              }
+              case Node.Spread(var ___, var expr) -> {
+                var value = eval(expr);
+                if(value instanceof Record r) {
+                  record.addAll(r.fields);
+                } else {
+                  throw new InterpreterError("expected a record, not `" + value.getClass() + "`");
+                }
               }
               default -> throw new NotImplemented(Node.show(field));
             }
