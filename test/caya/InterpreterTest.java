@@ -81,7 +81,13 @@ public class InterpreterTest {
       arguments("fn f() { return 1, 2 }; f()", "[1, 2]"),
       arguments("[sign(6), sign(-5), sign(0)]", "[1, -1, 0]"),
       arguments("x = 1; [(var x = 2; x), x]", "[2, 1]"),
-      arguments("x = 1; [(var x = x + 1; x), x]", "[2, 1]")
+      arguments("x = 1; [(var x = x + 1; x), x]", "[2, 1]"),
+      arguments("fn fib(x) { if x < 2 then 1 else fib(x - 1) + fib(x - 2) }; [fib(0), fib(1), fib(2), fib(3), fib(4), fib(5), fib(6)]", "[1, 1, 2, 3, 5, 8, 13]"),
+      arguments("{}", "{}"),
+      arguments("{x=1}", "{x=1}"),
+      arguments("{x=1}.x", "1"),
+      arguments("{x=1, y=5}.y", "5"),
+      arguments("var a = 3; {x=1, a}", "{x=1, a=3}")
     );
   }
 
@@ -96,7 +102,9 @@ public class InterpreterTest {
     "while 1 {}",
     "class X { var a = 0 }; x = X(); x.b = 2",
     "class X { var a = 0 }; x = X(); x.b",
-    "class X { var a = 0; var a = 1 }"
+    "class X { var a = 0; var a = 1 }",
+    "{}.a",
+    "{x=1, x=2}",
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));

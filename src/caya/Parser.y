@@ -33,8 +33,9 @@
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
 
-%type <Node> statement block_if assign tuple_expr expr arrow simple arith term
-%type <List<Node>> and_exprs or_exprs exprs0 exprs1 exprs2 statements0 statements1 cmp
+%type <Node> statement block_if assign tuple_expr expr arrow simple arith term arg
+%type <List<Node>> and_exprs or_exprs cmp
+%type <List<Node>> exprs0 exprs1 exprs2 args0 args1 statements0 statements1
 %type <Node.Seq> block
 %type <String> cmp_op
 
@@ -65,8 +66,7 @@ statement:
   | RETURN tuple_expr               { $$ = return_(@$, $2); }
   | block_if
   | WHILE expr block                { $$ = while_(@$, $2, $3); }
-  | FUNC expr block                 { $$ = func(@$, $2, $3); }
-  | FUNC assign block               { $$ = func(@$, $2, $3); }
+  | FUNC arg block                  { $$ = func(@$, $2, $3); }
   | CLASS expr block                { $$ = class_(@$, $2, $3); }
 
 assign:
@@ -147,6 +147,7 @@ term:
   | "[" exprs0 "]"                  { $$ = array(@$, $2); }
   | term "(" exprs0 ")"             { $$ = call(@$, $1, $3); }
   | term "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
+  | "{" args0 "}"                   { $$ = record(@$, $2); }
 
 exprs0:
     %empty                          { $$ = list(); }
@@ -160,3 +161,18 @@ exprs1:
 exprs2:
     expr "," exprs1                 { $$ = list($1, $3); }
   | expr "," exprs1 ","             { $$ = list($1, $3); }
+
+arg:
+    expr
+  | expr "=" expr                   { $$ = arg(@$, $1, $3); }
+  | expr error                      { $$ = error(@$, "arg"); }
+  | error                           { $$ = error(@$, "arg"); }
+
+args0:
+    %empty                          { $$ = list(); }
+  | args1
+  | args1 ","
+
+args1:
+    arg                             { $$ = list($1); }
+  | args1 "," arg                   { $$ = list($1, $3); }

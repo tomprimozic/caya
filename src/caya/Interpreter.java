@@ -9,12 +9,18 @@ import caya.Builtins.*;
 import static caya.Builtins.*;
 
 public final class Interpreter {
-  public static final class InterpreterError extends RuntimeException {
+  public static class InterpreterError extends RuntimeException {
     public InterpreterError(String msg) { super(msg); }
   }
   public static final class NotImplemented extends RuntimeException {
     public NotImplemented(String reason) { super(reason); }
   }
+  public static final class AttrError extends InterpreterError {
+    public final Class<?> cls;
+    public final String attr;
+    public AttrError(Class<?> cls, String attr) { super("object of type `" + cls + "` has no attribute `" + attr + "`"); this.cls = cls; this.attr = attr; }
+  }
+
 
   public static final class ReturnException extends RuntimeException {
     Value value;
@@ -122,6 +128,28 @@ public final class Interpreter {
         case Node.Ident(var __, var name) -> lookup(name);
         case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
         case Node.Tuple(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));  // TODO: should be immutable, either Vector or Tuple
+        case Node.Record(var __, var fields) -> {
+          var record = new scala.collection.mutable.HashMap<String, Value>();
+          for(var field : fields) {
+            switch(field) {
+              case Node.Arg(var ___, Node.Ident(var ____, var name), var expr) -> {
+                if(record.contains(name)) {
+                  throw new InterpreterError("duplicated record field `" + name + "`");
+                }
+                record.put(name, eval(expr));
+              }
+              case Node.Ident(var ___, var name) -> {
+                if(record.contains(name)) {
+                  throw new InterpreterError("duplicated record field `" + name + "`");
+                }
+                // treat as variable name
+                record.put(name, eval(field));
+              }
+              default -> throw new NotImplemented(Node.show(field));
+            }
+          }
+          yield new Record(record);
+        }
         case Node.Attr(var __, var expr, var attr) -> eval(expr).get_attr(attr);
         case Node.Call(var __, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
         case Node.Seq(var __, var exprs) -> {
@@ -221,7 +249,7 @@ public final class Interpreter {
               default -> throw new InterpreterError("duplicated attribute: " + attr);
             }
           }
-          case Node.Func(var _____, Node.Assign(var ______, Node.Attr(var _______, Node.This(var ________), var attr), Node.Ident(var _________, var param)), var body) -> {
+          case Node.Func(var _____, Node.Arg(var ______, Node.Attr(var _______, Node.This(var ________), var attr), Node.Ident(var _________, var param)), var body) -> {
             var setter = new Obj.Method(new String[] {param}, this, body);
             switch (attrs.get(attr)) {
               case null -> attrs.put(attr, new Obj.Property(null, setter));

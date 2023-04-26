@@ -56,7 +56,7 @@ public class ParserTest {
       arguments("class A { var x = 1; fn get() { return this.x } }", "Class[Ident[A], Seq[[VarAssign[Ident[x], Int[1]], Func[Call[Ident[get], []], Seq[[Return[Attr[This[], x]]]]]]]]"),
       arguments("var y; var x = 16", "Seq[[Var[Ident[y]], VarAssign[Ident[x], Int[16]]]]"),
       arguments("x = (x = 1)", "Assign[Ident[x], Seq[[Assign[Ident[x], Int[1]]]]]"),
-      arguments("class A { fn x = y { 1 } }", "Class[Ident[A], Seq[[Func[Assign[Ident[x], Ident[y]], Seq[[Int[1]]]]]]]"),
+      arguments("class A { fn x = y { 1 } }", "Class[Ident[A], Seq[[Func[Arg[Ident[x], Ident[y]], Seq[[Int[1]]]]]]]"),
       arguments("return", "Return[null]"),
       arguments("return 1", "Return[Int[1]]"),
       arguments("return 1,2", "Return[Tuple[[Int[1], Int[2]]]]"),
@@ -80,7 +80,14 @@ public class ParserTest {
       arguments("x -> y, y -> x", "Tuple[[Arrow[[Ident[x]], Ident[y]], Arrow[[Ident[y]], Ident[x]]]]"),
       arguments("x -> y = y -> x", "Assign[Arrow[[Ident[x]], Ident[y]], Arrow[[Ident[y]], Ident[x]]]"),
       arguments("x -> x and f(x)", "Arrow[[Ident[x]], And[[Ident[x], Call[Ident[f], [Ident[x]]]]]]"),
-      arguments("x -> (x and f(x))", "Arrow[[Ident[x]], And[[Ident[x], Call[Ident[f], [Ident[x]]]]]]")
+      arguments("x -> (x and f(x))", "Arrow[[Ident[x]], And[[Ident[x], Call[Ident[f], [Ident[x]]]]]]"),
+      arguments("{}", "Record[[]]"),
+      arguments("{x}", "Record[[Ident[x]]]"),
+      arguments("{x,}", "Record[[Ident[x]]]"),
+      arguments("{x=1}", "Record[[Arg[Ident[x], Int[1]]]]"),
+      arguments("{1=x}", "Record[[Arg[Int[1], Ident[x]]]]"),
+      arguments("{x=1, y=2}", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]"),
+      arguments("{x=1, y=2, }", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]")
     );
   }
 
@@ -91,7 +98,7 @@ public class ParserTest {
     "()",
     "(,)",
     "(1, )",
-    "{}",
+    "{,}",
     "[,]",
     "==",
     "12__34",

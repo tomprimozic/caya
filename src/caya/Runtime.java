@@ -2,11 +2,11 @@ package caya;
 
 public final class Runtime {
   public static abstract class Value {
-    public Value call(Value[] args) { throw new Interpreter.NotImplemented(this.getClass() + ".call"); }
-    public Value get_attr(String attr) { throw new Interpreter.NotImplemented(this.getClass() + ".get_attr"); }
-    public void set_attr(String attr, Value value) { throw new Interpreter.NotImplemented(this.getClass() + ".set_attr"); }
-    public Value get_item(Value item) { throw new Interpreter.NotImplemented(this.getClass() + ".get_item"); }
-    public void set_item(Value item, Value value) { throw new Interpreter.NotImplemented(this.getClass() + ".set_item"); }
+    public Value call(Value[] args) { throw new Interpreter.InterpreterError("object of type `" + this.getClass() + "` cannot be called"); }
+    public Value get_attr(String attr) { throw new Interpreter.AttrError(this.getClass(), attr); }
+    public void set_attr(String attr, Value value) { throw new Interpreter.AttrError(this.getClass(), attr); }
+    public Value get_item(Value item) { throw new Interpreter.InterpreterError("object of type `" + this.getClass() + "` cannot be subscripted"); }
+    public void set_item(Value item, Value value) { throw new Interpreter.InterpreterError("object of type `" + this.getClass() + "` cannot be subscripted"); }
   }
 
   public static final class Function extends Value {
