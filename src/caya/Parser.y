@@ -136,7 +136,7 @@ atom:
   | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | atom "." IDENT                  { $$ = attr(@$, $1, $3); }
-  | atom "(" exprs0 ")"             { $$ = call(@$, $1, $3); }
+  | atom "(" args0 ")"              { $$ = call(@$, $1, $3); }
   | atom "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
 
 term:

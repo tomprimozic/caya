@@ -1,7 +1,9 @@
 package caya;
 
 import java.util.HashMap;
+import java.util.Map;
 
+import caya.Runtime.Param;
 import caya.Runtime.Value;
 
 public final class Obj extends Value {
@@ -9,8 +11,8 @@ public final class Obj extends Value {
   public final Value[] fields;
   public Obj(Cls cls) { this.cls = cls; this.fields = new Value[cls.num_fields]; }
 
-  public Value get_attr(String attr) { return cls.get_obj_attr(this, attr); }
-  public void set_attr(String attr, Value value) { cls.set_obj_attr(this, attr, value); }
+  @Override public Value get_attr(String attr) { return cls.get_obj_attr(this, attr); }
+  @Override public void set_attr(String attr, Value value) { cls.set_obj_attr(this, attr, value); }
 
   public static final class Cls extends Value {
     public final String name;
@@ -25,9 +27,10 @@ public final class Obj extends Value {
       this.constructor = constructor;
     }
 
-    public Value call(Value[] args) {
+    @Override
+    public Value call(Value[] args, Map<String, Value> named_args) {
       var obj = new Obj(this);
-      constructor.get(obj).call(args);
+      constructor.get(obj).call(args, named_args);
       return obj;
     }
 
@@ -53,9 +56,9 @@ public final class Obj extends Value {
     public void set(Obj obj, Value value) { obj.fields[field] = value; }
   }
 
-  record Method(String[] params, Interpreter.Scope closure, Node body) implements Descriptor {
+  record Method(Param[] params, Interpreter.Scope closure, Node body) implements Descriptor {
     public Value get(Obj obj) { return new BoundMethod(obj, this); }
-    public Value call(Obj obj, Value[] args) { return Interpreter.eval_function(params, closure, body, args, obj); }
+    public Value call(Obj obj, Value[] args, Map<String, Value> named_args) { return Interpreter.eval_function(params, closure, body, args, named_args, obj); }
   }
 
   record Property(Method getter, Method setter) implements Descriptor {
@@ -65,14 +68,14 @@ public final class Obj extends Value {
       assert getter == null || getter.params.length == 0;
       assert setter == null || setter.params.length == 1;
     }
-    public Value get(Obj obj) { return getter.call(obj, new Value[0]); }
-    public void set(Obj obj, Value value) { setter.call(obj, new Value[] {value}); }
+    public Value get(Obj obj) { return getter.call(obj, new Value[0], null); }
+    public void set(Obj obj, Value value) { setter.call(obj, new Value[] {value}, null); }
   }
 
   public final static class BoundMethod extends Value {
     public final Obj obj;
     public final Method method;
     public BoundMethod(Obj obj, Method method) { this.obj = obj; this.method = method; }
-    public Value call(Value[] args) { return method.call(obj, args); }
+    @Override public Value call(Value[] args, Map<String, Value> named_args) { return method.call(obj, args, named_args); }
   }
 }

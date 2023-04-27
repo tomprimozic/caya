@@ -2,10 +2,12 @@ package caya;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
 import caya.Runtime.Value;
+import caya.Runtime.Param;
 import caya.Builtins.*;
 import static caya.Builtins.*;
 
@@ -40,6 +42,10 @@ public final class Interpreter {
     return to_int(value).intValueExact();
   }
 
+  public static long to_int64(Value value) {
+    return to_int(value).longValueExact();
+  }
+
   public static boolean to_bool(Value value) {
     if(value instanceof Bool b) {
       return b.value;
@@ -48,13 +54,54 @@ public final class Interpreter {
     }
   }
 
-  public static Value eval_function(String[] params, Scope closure, Node body, Value[] args, Obj this_obj) {
-    if(params.length != args.length) {
-      throw new Interpreter.InterpreterError("expected " + params.length + " arguments, got " + args.length);
-    }
+  // public static Value eval_function(Param[] params, Scope closure, Node body, Value[] args, Obj this_obj) {
+  //   Map<String, Value> named_args = null;
+  //   return eval_function(params, closure, body, args, named_args, this_obj);
+  // }
+
+  public static Value eval_function(Param[] params, Scope closure, Node body, Value[] args, Map<String, Value> named_args, Obj this_obj) {
     var scope = new Interpreter.Scope(closure, this_obj);
-    for(int i = 0; i < params.length; i++) {
-      scope.declare(params[i], args[i]);
+    if(named_args == null || named_args.isEmpty()) {
+      // fast path
+      if(params.length < args.length) {
+        throw new Interpreter.InterpreterError("expected " + params.length + " arguments, got " + args.length);
+      }
+      for(int i = 0; i < params.length; i++) {
+        if(i >= args.length) {
+          if(params[i].default_value() != null) {
+            scope.declare(params[i].name(), scope.eval(params[i].default_value()));
+          } else {
+            throw new Interpreter.InterpreterError("missing value for parameter `" + params[i].name() + "`");
+          }
+        } else {
+          scope.declare(params[i].name(), args[i]);
+        }
+      }
+    } else {
+      assert named_args.size() > 0;
+      next_arg:
+      for(var arg : named_args.entrySet()) {
+        for(var param : params) {
+          if(param.name().equals(arg.getKey())) {
+            scope.declare(param.name(), arg.getValue());
+            continue next_arg;
+          }
+        }
+        throw new Interpreter.InterpreterError("invalid named argument `" + arg.getKey() + "`");
+      }
+      var i = 0;
+      for(var param : params) {
+        if(named_args.containsKey(param.name())) {
+          continue;
+        } else if(i < args.length) {
+          scope.declare(param.name(), args[i]);
+          i += 1;
+        } else if(param.default_value() != null) {
+          scope.declare(param.name(), scope.eval(param.default_value()));
+        } else {
+          throw new Interpreter.InterpreterError("missing parameter ` " + param.name() + "`");
+        }
+      }
     }
     try {
       return scope.eval(body);
@@ -107,16 +154,66 @@ public final class Interpreter {
       this.bindings.put(binding, value);
     }
 
-    private String[] get_params(java.util.List<Node> params) {
-      var param_names = new String[params.size()];
-      for(int i = 0; i < params.size(); i++) {
-        if(params.get(i) instanceof Node.Ident(var _____, var name)) {
-          param_names[i] = name;
-        } else {
-          throw new InterpreterError("parameters must be identifiers");
+    private Param[] get_params(java.util.List<Node> params) {
+      var parameters = new Param[params.size()];
+      var names = new HashSet<String>();
+      // for(int i = 0; i < params.size(); i++) {
+      //   var param = params.get(i);
+      //   switch(param) {
+      //     case Node.Ident(var __, var name) -> {
+      //       // if(names.contains(name)) {
+      //       //   throw new InterpreterError("duplicated parameter name `" + name + "`");
+      //       // }
+      //       names.add(name);
+      //       parameters[i] = new Param(name, null);
+      //     }
+      //     case Node.Arg(var __, Node.Ident(var ___, var name), var default_value) -> {
+      //       // if(names.contains(name)) {
+      //       //   throw new InterpreterError("duplicated parameter name `" + name + "`");
+      //       // }
+      //       names.add(name);
+      //       parameters[i] = new Param(name, default_value);
+      //     }
+      //     default -> {
+      //       // if(true) {
+      //       //   throw new InterpreterError("invalid parameter: " + Node.show(param));
+      //       // }
+      //     }
+      //   }
+      // }
+      // for(int i = 0; i < params.size(); i++) {
+      //   var param = params.get(i);
+      //   switch(param) {
+      //   //   case Node.Arg(var __, Node.Ident(var ___, var name), var default_value) -> {
+      //   //     names.add(name);
+      //   //   }
+      //     default -> {
+
+      //     }
+      //   }
+      // }
+      var i = 0;
+      for(var param : params) {
+        switch(param) {
+          case Node.Arg(var __, Node.Ident(var ___, var name), var default_value) -> {
+            if(names.contains(name)) {
+              throw new InterpreterError("duplicated parameter name `" + name + "`");
+            }
+            names.add(name);
+            parameters[i] = new Param(name, default_value);
+          }
+          case Node.Ident(var __, var name) -> {
+            if(names.contains(name)) {
+              throw new InterpreterError("duplicated parameter name `" + name + "`");
+            }
+            names.add(name);
+            parameters[i] = new Param(name, null);
+          }
+          default -> throw new InterpreterError("invalid parameter: " + Node.show(param));
         }
+        i += 1;
       }
-      return param_names;
+      return parameters;
     }
 
     public Value eval(Node n) {
@@ -163,7 +260,23 @@ public final class Interpreter {
           yield new Record(record);
         }
         case Node.Attr(var __, var expr, var attr) -> eval(expr).get_attr(attr);
-        case Node.Call(var __, var fn, var args) -> eval(fn).call(args.stream().map(this::eval).toArray(size -> new Value[size]));
+        case Node.Call(var __, var fn, var args) -> {
+          var named_args = new HashMap<String, Value>();
+          var other_args = new ArrayList<Value>();
+          var fn_value = eval(fn);
+          for(var arg : args) {
+            switch(arg) {
+              case Node.Arg(var ___, Node.Ident(var ____, var name), var expr) -> {
+                if(named_args.containsKey(name)) {
+                  throw new InterpreterError("duplicated named argumeng `" + name + "`");
+                }
+                named_args.put(name, eval(expr));
+              }
+              default -> { other_args.add(eval(arg)); }
+            }
+          }
+          yield fn_value.call(other_args.toArray(size -> new Value[size]), named_args.isEmpty() ? null : named_args);
+        }
         case Node.Seq(var __, var exprs) -> {
           if(exprs.isEmpty()) yield NONE;
           var it = exprs.iterator();
@@ -251,7 +364,7 @@ public final class Interpreter {
             constructor_statements.add(new Node.Assign(null, new Node.Attr(null, new Node.This(null), field_name), value));
           }
           case Node.Func(var _____, Node.Attr(var ______, Node.This(var _______), var attr), var body) -> {
-            var getter = new Obj.Method(new String[0], this, body);
+            var getter = new Obj.Method(new Param[0], this, body);
             switch (attrs.get(attr)) {
               case null -> attrs.put(attr, new Obj.Property(getter, null));
               case Obj.Property(var existing_getter, var setter) -> {
@@ -262,7 +375,7 @@ public final class Interpreter {
             }
           }
           case Node.Func(var _____, Node.Arg(var ______, Node.Attr(var _______, Node.This(var ________), var attr), Node.Ident(var _________, var param)), var body) -> {
-            var setter = new Obj.Method(new String[] {param}, this, body);
+            var setter = new Obj.Method(new Param[] {new Param(param, null)}, this, body);
             switch (attrs.get(attr)) {
               case null -> attrs.put(attr, new Obj.Property(null, setter));
               case Obj.Property(var getter, var existing_setter) -> {
@@ -278,7 +391,7 @@ public final class Interpreter {
           default -> throw new NotImplemented(Node.show(declaration));
         }
       }
-      Obj.Method constructor = new Obj.Method(new String[0], this, new Node.Seq(null, constructor_statements));
+      Obj.Method constructor = new Obj.Method(new Param[0], this, new Node.Seq(null, constructor_statements));
       return new Obj.Cls(name, fields.size(), constructor, attrs);
     }
 

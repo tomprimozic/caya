@@ -3,6 +3,7 @@ package caya;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.HashMap;
+import java.util.Map;
 
 import scala.collection.mutable.ArrayDeque;
 import scala.collection.ArrayOps;
@@ -22,18 +23,19 @@ public final class Builtins {
   public final static class Int extends Value {
     public final BigInteger value;
     public Int(BigInteger value) { this.value = value; }
-    public Int(Integer value) { this.value = BigInteger.valueOf(value); }
-    public String toString() { return value.toString(); }
+    public Int(int value) { this.value = BigInteger.valueOf(value); }
+    public Int(long value) { this.value = BigInteger.valueOf(value); }
+    @Override public String toString() { return value.toString(); }
   }
 
   public final static class Bool extends Value {
     public final boolean value;
     public Bool(boolean value) { this.value = value; }
-    public String toString() { return Boolean.toString(value); }
+    @Override public String toString() { return Boolean.toString(value); }
   }
 
   public final static class None extends Value {
-    public String toString() { return "none"; }
+    @Override public String toString() { return "none"; }
   }
 
   public final static None NONE = new None();
@@ -53,7 +55,7 @@ public final class Builtins {
         return null_to_none((Value) m.invoke(obj));
       } catch (Throwable e) { throw new RuntimeException(e); }
     }
-    public Value call(Value obj, Value[] args) { return get(obj).call(args); }
+    public Value call(Value obj, Value[] args) { return get(obj).call(args, null); }
   }
 
   record Method(java.lang.reflect.Method m) implements Descriptor {
@@ -104,7 +106,7 @@ public final class Builtins {
   public static abstract class BuiltinValue extends Value {
     public abstract HashMap<String, Descriptor> attrs();
 
-    public final Value get_attr(String attr) {
+    @Override public final Value get_attr(String attr) {
       var descriptor = attrs().get(attr);
       if(descriptor == null) {
         throw new Interpreter.InterpreterError("object of class `" + getClass() + "` has no attribute `" + attr + "`");
@@ -128,20 +130,30 @@ public final class Builtins {
     public final Value obj;
     public final Method method;
     public BoundMethod(Value obj, Method method) { this.obj = obj; this.method = method; }
-    public Value call(Value[] args) { return method.call(obj, args); }
+    @Override public Value call(Value[] args, Map<String, Value> named_args) {
+      if(named_args != null && !named_args.isEmpty()) {
+        throw new Interpreter.InterpreterError("builtin method `" + method.m().getName() + "` cannot be called with named arguments");
+      }
+      return method.call(obj, args);
+    }
   }
 
   public static final class Function extends Value {
     public final Method method;
     public Function(Method method) { this.method = method; }
     public Function(String fn) { this(new Method(find_unique(Builtins.class, fn))); }
-    public Value call(Value[] args) { return method.call(null, args); }
+    @Override public Value call(Value[] args, Map<String, Value> named_args) {
+      if(named_args != null && !named_args.isEmpty()) {
+        throw new Interpreter.InterpreterError("builtin function `" + method.m().getName() + "` cannot be called with named arguments");
+      }
+      return method.call(null, args);
+    }
   }
 
   public final static class Str extends BuiltinValue {
     public final String value;
     public Str(String value) { this.value = value; }
-    public String toString() { return value; }
+    @Override public String toString() { return value; }
 
     public Int size() { return new Int(value.length()); }
     public Value join(List items) { return new Str(items.data.mkString(this.value)); }
@@ -156,7 +168,7 @@ public final class Builtins {
   public final static class Atom extends BuiltinValue {
     public final String name;
     public Atom(String name) { this.name = name; }
-    public String toString() { return "`" + name; }
+    @Override public String toString() { return "`" + name; }
 
     public Str name() { return new Str(name); }
 
@@ -174,7 +186,7 @@ public final class Builtins {
       data = new ArrayDeque<>(items.length);
       data.addAll(new ArrayOps.ArrayIterator<>(items));
     }
-    public String toString() { return data.mkString("[", ", ", "]"); }
+    @Override public String toString() { return data.mkString("[", ", ", "]"); }
 
     public void push(Value item) { data.prepend(item); }
     public void append(Value... items) { for(var item : items) { data.append(item); } }
@@ -183,8 +195,8 @@ public final class Builtins {
     public Int size() { return new Int(data.size()); }
     public Value last() { return data.last(); }
 
-    public Value get_item(Value item) { return this.data.apply(Interpreter.to_int32(item)); }
-    public void set_item(Value item, Value value) { data.update(Interpreter.to_int32(item), value); }
+    @Override public Value get_item(Value item) { return this.data.apply(Interpreter.to_int32(item)); }
+    @Override public void set_item(Value item, Value value) { data.update(Interpreter.to_int32(item), value); }
 
     public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
@@ -201,8 +213,8 @@ public final class Builtins {
     public Int size() { return new Int(data.size()); }
     public void clear() { data.clear(); }
 
-    public Value get_item(Value key) { return data.get(key); }
-    public void set_item(Value key, Value value) { data.put(key, value); }
+    @Override public Value get_item(Value key) { return data.get(key); }
+    @Override public void set_item(Value key, Value value) { data.put(key, value); }
 
     public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,

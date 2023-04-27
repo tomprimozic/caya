@@ -95,7 +95,13 @@ public class InterpreterTest {
       arguments("(1, 2, 3).push(5)", "[5, 1, 2, 3]"),
       arguments("(1, 2, 3).append(5)", "[1, 2, 3, 5]"),
       arguments("(1, 2, 3)[1]", "2"),
-      arguments("(1, 2, 3).update(1, 6)", "[1, 6, 3]")
+      arguments("(1, 2, 3).update(1, 6)", "[1, 6, 3]"),
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(5)", "11"),
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(z=2, 5)", "13"),
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(z=2, x=5)", "13"),
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(5, 2)", "7"),
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(5, 2, 1)", "8"),
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(5, z=2)", "13")
     );
   }
 
@@ -114,7 +120,9 @@ public class InterpreterTest {
     "{}.a",
     "{x=1, x=2}",
     "a = 1; {...a}",
-    "a={}; {a=1, ...a, a=1}"
+    "a={}; {a=1, ...a, a=1}",
+    "f(x, y=x+1, z=0) = x + y + z; f(z=2)",
+    "f(x, y=x+1, z=0) = x + y + z; f(z=2, y=5)",
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));
