@@ -54,31 +54,9 @@ public final class Interpreter {
     }
   }
 
-  // public static Value eval_function(Param[] params, Scope closure, Node body, Value[] args, Obj this_obj) {
-  //   Map<String, Value> named_args = null;
-  //   return eval_function(params, closure, body, args, named_args, this_obj);
-  // }
-
   public static Value eval_function(Param[] params, Scope closure, Node body, Value[] args, Map<String, Value> named_args, Obj this_obj) {
     var scope = new Interpreter.Scope(closure, this_obj);
-    if(named_args == null || named_args.isEmpty()) {
-      // fast path
-      if(params.length < args.length) {
-        throw new Interpreter.InterpreterError("expected " + params.length + " arguments, got " + args.length);
-      }
-      for(int i = 0; i < params.length; i++) {
-        if(i >= args.length) {
-          if(params[i].default_value() != null) {
-            scope.declare(params[i].name(), scope.eval(params[i].default_value()));
-          } else {
-            throw new Interpreter.InterpreterError("missing value for parameter `" + params[i].name() + "`");
-          }
-        } else {
-          scope.declare(params[i].name(), args[i]);
-        }
-      }
-    } else {
-      assert named_args.size() > 0;
+    if(named_args != null) {
       next_arg:
       for(var arg : named_args.entrySet()) {
         for(var param : params) {
@@ -89,18 +67,18 @@ public final class Interpreter {
         }
         throw new Interpreter.InterpreterError("invalid named argument `" + arg.getKey() + "`");
       }
-      var i = 0;
-      for(var param : params) {
-        if(named_args.containsKey(param.name())) {
-          continue;
-        } else if(i < args.length) {
-          scope.declare(param.name(), args[i]);
-          i += 1;
-        } else if(param.default_value() != null) {
-          scope.declare(param.name(), scope.eval(param.default_value()));
-        } else {
-          throw new Interpreter.InterpreterError("missing parameter ` " + param.name() + "`");
-        }
+    }
+    var i = 0;
+    for(var param : params) {
+      if(named_args != null && named_args.containsKey(param.name())) {
+        continue;
+      } else if(i < args.length) {
+        scope.declare(param.name(), args[i]);
+        i += 1;
+      } else if(param.default_value() != null) {
+        scope.declare(param.name(), scope.eval(param.default_value()));
+      } else {
+        throw new Interpreter.InterpreterError("missing parameter ` " + param.name() + "`");
       }
     }
     try {
