@@ -104,7 +104,13 @@ public final class Builtins {
   public static abstract class BuiltinValue extends Value {
     public abstract HashMap<String, Descriptor> attrs();
 
-    public Value get_attr(String attr) { return attrs().get(attr).get(this); }
+    public final Value get_attr(String attr) {
+      var descriptor = attrs().get(attr);
+      if(descriptor == null) {
+        throw new Interpreter.InterpreterError("object of class `" + getClass() + "` has no attribute `" + attr + "`");
+      }
+      return descriptor.get(this);
+    }
 
     public static HashMap<String, Descriptor> resolve_attrs(Class<?> cls, String[] props, String[] methods) {
       var descriptors = new HashMap<String, Descriptor>();

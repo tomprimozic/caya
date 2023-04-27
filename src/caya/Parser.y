@@ -33,7 +33,7 @@
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
 
-%type <Node> statement block_if assign tuple_expr expr arrow simple arith term arg
+%type <Node> statement block_if assign tuple_expr expr arrow simple arith atom term arg
 %type <List<Node>> and_exprs or_exprs cmp
 %type <List<Node>> exprs0 exprs1 exprs2 args0 args1 statements0 statements1
 %type <Node.Seq> block
@@ -123,11 +123,21 @@ cmp_op:
   | ">="                            { $$ = ">="; }
 
 arith:
-    term
+    atom
   | "-" arith          %prec UNARY  { $$ = unary(@$, ident(@1, "-"), $2); }
   | arith "+" arith                 { $$ = binary(@$, $1, ident(@2, "+"), $3); }
   | arith "-" arith                 { $$ = binary(@$, $1, ident(@2, "-"), $3); }
   | arith "*" arith                 { $$ = binary(@$, $1, ident(@2, "*"), $3); }
+
+atom:
+    term
+  | "(" exprs2 ")"                  { $$ = tuple(@$, $2); }
+  | "(" statement ")"               { $$ = seq(@$, list($2)); }
+  | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
+  | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
+  | atom "." IDENT                  { $$ = attr(@$, $1, $3); }
+  | atom "(" exprs0 ")"             { $$ = call(@$, $1, $3); }
+  | atom "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
 
 term:
     IDENT                           { $$ = ident(@$, $1); }
@@ -139,14 +149,8 @@ term:
   | NONE                            { $$ = none(@$); }
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | THIS                            { $$ = this_(@$); }
-  | term "." IDENT                  { $$ = attr(@$, $1, $3); }
   | "(" expr ")"                    { $$ = paren(@$, $2); }
-  | "(" statement ")"               { $$ = seq(@$, list($2)); }
-  | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
-  | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "[" exprs0 "]"                  { $$ = array(@$, $2); }
-  | term "(" exprs0 ")"             { $$ = call(@$, $1, $3); }
-  | term "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
   | "{" args0 "}"                   { $$ = record(@$, $2); }
 
 exprs0:

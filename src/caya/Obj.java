@@ -33,7 +33,9 @@ public final class Obj extends Value {
 
     private Descriptor get_descriptor(String attr) {
       var descriptor = attrs.get(attr);
-      if(descriptor == null) throw new Interpreter.InterpreterError("object of class " + name + " has no attribute " + attr);
+      if(descriptor == null) {
+        throw new Interpreter.InterpreterError("object of class `" + name + "` has no attribute `" + attr + "`");
+      }
       return descriptor;
     }
 

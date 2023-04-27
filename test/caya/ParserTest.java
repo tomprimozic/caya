@@ -88,7 +88,9 @@ public class ParserTest {
       arguments("{1=x}", "Record[[Arg[Int[1], Ident[x]]]]"),
       arguments("{x=1, y=2}", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]"),
       arguments("{x=1, y=2, }", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]"),
-      arguments("{x=3, ...a, y=a}", "Record[[Arg[Ident[x], Int[3]], Spread[Ident[a]], Arg[Ident[y], Ident[a]]]]")
+      arguments("{x=3, ...a, y=a}", "Record[[Arg[Ident[x], Int[3]], Spread[Ident[a]], Arg[Ident[y], Ident[a]]]]"),
+      arguments("(1, 3, 4).pop()", "Call[Attr[Tuple[[Int[1], Int[3], Int[4]]], pop], []]"),
+      arguments("(1; 2, 3; 4)", "Seq[[Int[1], Tuple[[Int[2], Int[3]]], Int[4]]]")
     );
   }
 
@@ -123,6 +125,10 @@ public class ParserTest {
     "a and b or c",
     "(,) -> 1",
     "f(x) and x -> x",
+    " (1, 2; 3, 4)",
+    "f(1, 2; 3, 4)",
+    "f(1; 2, 3; 4)",
+    "f(1; 2)",
   })
   void test_error(String code) {
     assertThrows(Parser.ParserError.class, () -> ParserHelper.parse(code));

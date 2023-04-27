@@ -128,7 +128,7 @@ public final class Interpreter {
         case Node.Atom(var __, var name) -> new Atom(name);
         case Node.Ident(var __, var name) -> lookup(name);
         case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
-        case Node.Tuple(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));  // TODO: should be immutable, either Vector or Tuple
+        case Node.Tuple(var __, var items) -> Vector.make(items.stream().map(this::eval).toList());
         case Node.Record(var __, var fields) -> {
           var seen_fields = new HashSet<String>();
           var record = new scala.collection.mutable.HashMap<String, Value>();

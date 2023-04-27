@@ -89,7 +89,13 @@ public class InterpreterTest {
       arguments("{x=1, y=5}.y", "5"),
       arguments("var a = 3; {x=1, a}", "{x=1, a=3}"),
       arguments("var a = {x = 1, b = 2}; {x = 4, ...a, y=6}", "{x=1, y=6, b=2}"),
-      arguments("var a = {x = 1, b = 2}; {x = 4, ...a, b=6}", "{x=1, b=6}")
+      arguments("var a = {x = 1, b = 2}; {x = 4, ...a, b=6}", "{x=1, b=6}"),
+      arguments("(1, 2, 3).pop()", "[2, 3]"),
+      arguments("(1, 2, 3).shift()", "[1, 2]"),
+      arguments("(1, 2, 3).push(5)", "[5, 1, 2, 3]"),
+      arguments("(1, 2, 3).append(5)", "[1, 2, 3, 5]"),
+      arguments("(1, 2, 3)[1]", "2"),
+      arguments("(1, 2, 3).update(1, 6)", "[1, 6, 3]")
     );
   }
 

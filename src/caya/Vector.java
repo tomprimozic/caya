@@ -1,14 +1,19 @@
-package experiment.vector;
+package caya;
 
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 
-public final class Vector<E> implements Iterable<E> {
+import caya.Builtins.BuiltinValue;
+import caya.Builtins.Descriptor;
+import caya.Builtins.Int;
+import caya.Runtime.Value;
+
+public final class Vector<E extends Value> extends BuiltinValue implements Iterable<E> {
+  // copied from https://github.com/tomprimozic/vector/blob/master/src/experiment/vector/Vector.java
   private record Pair(Object[] left, Object[] right) {}
 
   private static final Object[] EMPTY_ARRAY = new Object[]{};
-//  private static final int SHIFT = 2;         // for debugging purposes
   private static final int SHIFT = 5;
   private static final int SIZE = 1 << SHIFT;      // size of a trie level
   private static final int MASK = SIZE - 1;
@@ -22,7 +27,19 @@ public final class Vector<E> implements Iterable<E> {
     this.right = right;
   }
 
-  public static final Vector<?> empty = new Vector<>(Left.empty, Right.empty);
+  public static final Vector<? extends Value> empty = new Vector<Value>(Left.empty, Right.empty);
+
+  public Value get_item(Value item) { return get(Interpreter.to_int32(item)); }
+
+  public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+  public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Vector.class,
+    new String[] {"size", "first", "last"},
+    new String[] {"push", "append", "update", "pop", "shift"}
+  );
+
+  // TODO: can these be optimised?
+  public Value first() { return get(0); }
+  public Value last() { return get(size_int32() - 1); }
 
   private static byte shift(int size) {
     int rem = size - 1;
@@ -33,18 +50,20 @@ public final class Vector<E> implements Iterable<E> {
     }
     return shift;
   }
-  public int size() { return left.extra.length + left.data_size + right.data_size + right.extra.length; }
-  public void debug() { left.debug(); right.debug(); }
+  public int size_int32() { return left.extra.length + left.data_size + right.data_size + right.extra.length; }
+  public Int size() { return new Int(size_int32()); }
 
   @SuppressWarnings("unchecked")
   public E get(int i) {
-    if(!(0 <= i && i < size())) { throw new IndexOutOfBoundsException(i); }
+    if(!(0 <= i && i < size_int32())) { throw new IndexOutOfBoundsException(i); }
     var left_size = left.extra.length + left.data_size;
     return (E) (i < left_size ? left.get(i) : right.get(i - left_size));
   }
 
-  public Vector<E> update(int i, E element) {
-    if(!(0 <= i && i < size())) { throw new IndexOutOfBoundsException(i); }
+  public Vector<E> update(Int i, E element) { return update_int32(i.value.intValueExact(), element); }
+
+  public Vector<E> update_int32(int i, E element) {
+    if(!(0 <= i && i < size_int32())) { throw new IndexOutOfBoundsException(i); }
     var left_size = left.extra.length + left.data_size;
     if(i < left_size) {
       return new Vector<>(left.update(i, element), right);
@@ -54,12 +73,12 @@ public final class Vector<E> implements Iterable<E> {
   }
 
   public java.util.List<E> toList() {
-    var result = new java.util.ArrayList<E>(size());
+    var result = new java.util.ArrayList<E>(size_int32());
     for(var e : this) { result.add(e); }
     return result;
   }
 
-  private static class VectorIterator<E> implements Iterator<E> {
+  private static class VectorIterator<E extends Value> implements Iterator<E> {
     private Object[] current;
     private Left<E> left;
     private Right<E> right;
@@ -121,6 +140,33 @@ public final class Vector<E> implements Iterable<E> {
   @Override
   public Iterator<E> iterator() { return new VectorIterator<>(this); }
 
+  @SuppressWarnings("unchecked")
+  public static <E extends Value> Vector<E> make(Iterable<E> items) {
+    // TODO: this can probably be optimised
+    Vector<E> result = (Vector<E>) Vector.empty;
+    for(var item : items) {
+      result = result.append(item);
+    }
+    return result;
+  }
+
+  public String toString() {
+    var s = new StringBuilder("[");
+    var first = true;
+    var it = iterator();
+    while(it.hasNext()) {
+      if(first) {
+        first = false;
+      } else {
+        s.append(", ");
+      }
+      var item = it.next();
+      s.append(item);
+    }
+    s.append(']');
+    return s.toString();
+  }
+
   private <A extends Half<E, A, B>, B extends Half<E, B, A>> Vector<E> push(E e, A other, B to) {
     if(to.extra.length == SIZE && to.data_size >= (1 << to.shift) && other.shift < to.shift) {
       if(other.data == null) {
@@ -144,9 +190,8 @@ public final class Vector<E> implements Iterable<E> {
     }
   }
 
-  public Vector<E> push_right(E e) { return push(e, left, right); }
-  public Vector<E> push_left(E e) { return push(e, right, left); }
-
+  public Vector<E> append(E e) { /* push_right */ return push(e, left, right); }
+  public Vector<E> push(E e) { /* push_left or prepend */ return push(e, right, left); }
 
   private <A extends Half<E, A, B>, B extends Half<E, B, A>> Vector<E> pop(A other, B from) {
     if(from.extra.length <= 1) {         // will change `data`
@@ -210,8 +255,8 @@ public final class Vector<E> implements Iterable<E> {
     return from.vector(other, from.pop());
   }
 
-  public Vector<E> pop_right() { return pop(left, right); }
-  public Vector<E> pop_left() { return pop(right, left); }
+  public Vector<E> shift() { /* pop_right or removeLast */ return pop(left, right); }
+  public Vector<E> pop() { /* pop_left or removeHead */ return pop(right, left); }
 
   private static Object[] single(int shift, Object[] array) {
     for(; shift > SHIFT; shift -= SHIFT) {
@@ -220,7 +265,7 @@ public final class Vector<E> implements Iterable<E> {
     return array;
   }
 
-  private abstract static class Half<E, This extends Half<E, This, That>, That extends Half<E, That, This>> {
+  private abstract static class Half<E extends Value, This extends Half<E, This, That>, That extends Half<E, That, This>> {
     final byte shift;
     final Object[] extra;
     final Object[] data;
@@ -240,19 +285,6 @@ public final class Vector<E> implements Iterable<E> {
     abstract int start_index(Object[] array);
     abstract int end_index(Object[] array);
     abstract Object[] end();
-
-    public void debug(int indent, int shift, Object[] array) {
-      if(shift == SHIFT) {
-        System.out.print("  ".repeat(indent));
-        System.out.println(Arrays.toString(array));
-      } else {
-        System.out.println("  ".repeat(indent) + "[");
-        for (var n : array) {
-          debug(indent + 1, shift - SHIFT, (Object[]) n);
-        }
-        System.out.println("  ".repeat(indent) + "]");
-      }
-    }
 
     protected Pair split(Object[] array) {
       var start = new Object[SIZE / 2 + 1];
@@ -349,26 +381,16 @@ public final class Vector<E> implements Iterable<E> {
     }
   }
 
-  private final static class Right<E> extends Half<E, Right<E>, Left<E>> {
+  private final static class Right<E extends Value> extends Half<E, Right<E>, Left<E>> {
     private Right(int data_size, Object[] data, Object[] extra) {
       super(data_size, data, extra);
     }
-    private static final Right<Object> empty = new Right<>(0, null, EMPTY_ARRAY);
+    private static final Right<Value> empty = new Right<>(0, null, EMPTY_ARRAY);
     protected Right<E> make(int data_size, Object[] data, Object[] extra) { return new Right<>(data_size, data, extra); }
     protected Vector<E> vector(Left<E> left, Right<E> right) { return new Vector<>(left, right); }
     protected int start_index(Object[] array) { return 0; }
     protected int end_index(Object[] array) { return array.length - 1; }
     protected Object[] end() { return get_array(data_size - 1); }
-
-    public void debug() {
-      System.out.println("Right: data_size=" + data_size + " shift=" + shift);
-      if(data == null) {
-        System.out.println("  []");
-      } else {
-        debug(1, shift, data);
-      }
-      System.out.println("  " + Arrays.toString(extra));
-    }
 
     protected Object[] push(Object[] array, Object element) {
       Object[] result = new Object[array.length + 1];
@@ -420,27 +442,16 @@ public final class Vector<E> implements Iterable<E> {
       return a;
     }
   }
-  private final static class Left<E> extends Half<E, Left<E>, Right<E>> {
+  private final static class Left<E extends Value> extends Half<E, Left<E>, Right<E>> {
     private Left(int data_size, Object[] data, Object[] extra) {
       super(data_size, data, extra);
     }
-    private static final Left<Object> empty = new Left<>(0, null, EMPTY_ARRAY);
+    private static final Left<Value> empty = new Left<>(0, null, EMPTY_ARRAY);
     protected Left<E> make(int data_size, Object[] data, Object[] extra) { return new Left<>(data_size, data, extra); }
     protected Vector<E> vector(Right<E> right, Left<E> left) { return new Vector<>(left, right); }
     protected int start_index(Object[] array) { return array.length - 1; }
     protected int end_index(Object[] array) { return 0; }
     protected Object[] end() { return get_array(0); }
-
-
-    public void debug() {
-      System.out.println("Left: data_size=" + data_size + " shift=" + shift);
-      System.out.println("  " + Arrays.toString(extra));
-      if(data == null) {
-        System.out.println("  []");
-      } else {
-        debug(1, shift, data);
-      }
-    }
 
     protected Object[] push(Object[] array, Object element) {
       Object[] result = new Object[array.length + 1];
