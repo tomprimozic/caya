@@ -101,7 +101,9 @@ public class InterpreterTest {
       arguments("f(x, y=x+1, z=0) = x + y + z; f(z=2, x=5)", "13"),
       arguments("f(x, y=x+1, z=0) = x + y + z; f(5, 2)", "7"),
       arguments("f(x, y=x+1, z=0) = x + y + z; f(5, 2, 1)", "8"),
-      arguments("f(x, y=x+1, z=0) = x + y + z; f(5, z=2)", "13")
+      arguments("f(x, y=x+1, z=0) = x + y + z; f(5, z=2)", "13"),
+      arguments("a = []; i = 0; while true { i = i + 1; if i < 5 { continue }; if i > 7 { break }; a.append(i) }; a", "[5, 6, 7]"),
+      arguments("f(x) = (try { if x < 0 { throw -1 }; x + 4 } catch i { x + i }); [f(3), f(-2)]", "[7, -3]")
     );
   }
 

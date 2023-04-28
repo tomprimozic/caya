@@ -24,10 +24,19 @@ public final class Interpreter {
     public AttrError(Class<?> cls, String attr) { super("object of type `" + cls + "` has no attribute `" + attr + "`"); this.cls = cls; this.attr = attr; }
   }
 
+  public static abstract class Control extends RuntimeException {
+    public static final class Return extends Control {
+      Value value;
+      public Return(Value value) { this.value = value; }
+    }
 
-  public static final class ReturnException extends RuntimeException {
-    Value value;
-    public ReturnException(Value value) { this.value = value; }
+    public static final class Exception extends Control {
+      Value value;
+      public Exception(Value value) { this.value = value; }
+    }
+
+    public static final class Break extends Control {}
+    public static final class Continue extends Control {}
   }
 
   public static BigInteger to_int(Value value) {
@@ -55,7 +64,7 @@ public final class Interpreter {
   }
 
   public static Value eval_function(Param[] params, Scope closure, Node body, Value[] args, Map<String, Value> named_args, Obj this_obj) {
-    var scope = new Interpreter.Scope(closure, this_obj);
+    var scope = new Interpreter.Scope(closure, this_obj, false, true);
     if(named_args != null) {
       next_arg:
       for(var arg : named_args.entrySet()) {
@@ -83,12 +92,12 @@ public final class Interpreter {
     }
     try {
       return scope.eval(body);
-    } catch (Interpreter.ReturnException e) {
+    } catch (Control.Return e) {
       return e.value;
     }
   }
 
-  public static final Scope root = new Scope();
+  public static final Scope root = new Scope(null, null, false, false);
   static {
     root.assign("sign", new Builtins.Function("sign"));
   }
@@ -97,8 +106,9 @@ public final class Interpreter {
     private final HashMap<String, Value> bindings = new HashMap<>();
     private final Scope parent;
     private final Obj this_obj;
-    public Scope() { this.parent = null; this.this_obj = null; }
-    public Scope(Scope parent, Obj this_obj) { this.parent = parent; this.this_obj = this_obj; }
+    private final boolean in_loop;
+    private final boolean in_fn;
+    public Scope(Scope parent, Obj this_obj, boolean in_loop, boolean in_fn) { this.parent = parent; this.this_obj = this_obj; this.in_loop = in_loop; this.in_fn = in_fn; }
 
     public Value lookup(String binding) {
       if(bindings.containsKey(binding)) {
@@ -135,41 +145,6 @@ public final class Interpreter {
     private Param[] get_params(java.util.List<Node> params) {
       var parameters = new Param[params.size()];
       var names = new HashSet<String>();
-      // for(int i = 0; i < params.size(); i++) {
-      //   var param = params.get(i);
-      //   switch(param) {
-      //     case Node.Ident(var __, var name) -> {
-      //       // if(names.contains(name)) {
-      //       //   throw new InterpreterError("duplicated parameter name `" + name + "`");
-      //       // }
-      //       names.add(name);
-      //       parameters[i] = new Param(name, null);
-      //     }
-      //     case Node.Arg(var __, Node.Ident(var ___, var name), var default_value) -> {
-      //       // if(names.contains(name)) {
-      //       //   throw new InterpreterError("duplicated parameter name `" + name + "`");
-      //       // }
-      //       names.add(name);
-      //       parameters[i] = new Param(name, default_value);
-      //     }
-      //     default -> {
-      //       // if(true) {
-      //       //   throw new InterpreterError("invalid parameter: " + Node.show(param));
-      //       // }
-      //     }
-      //   }
-      // }
-      // for(int i = 0; i < params.size(); i++) {
-      //   var param = params.get(i);
-      //   switch(param) {
-      //   //   case Node.Arg(var __, Node.Ident(var ___, var name), var default_value) -> {
-      //   //     names.add(name);
-      //   //   }
-      //     default -> {
-
-      //     }
-      //   }
-      // }
       var i = 0;
       for(var param : params) {
         switch(param) {
@@ -189,7 +164,7 @@ public final class Interpreter {
           }
           default -> throw new InterpreterError("invalid parameter: " + Node.show(param));
         }
-        i += 1;
+        i += 1;   // if we change this to a for(;;) loop, Java thinks return is unreachable
       }
       return parameters;
     }
@@ -255,18 +230,7 @@ public final class Interpreter {
           }
           yield fn_value.call(other_args.toArray(size -> new Value[size]), named_args.isEmpty() ? null : named_args);
         }
-        case Node.Seq(var __, var exprs) -> {
-          if(exprs.isEmpty()) yield NONE;
-          var it = exprs.iterator();
-          var scope = new Scope(this, this_obj);
-          while(true) {
-            var expr = it.next();
-            var value = scope.eval(expr);
-            if(!it.hasNext()) {
-              yield value;
-            }
-          }
-        }
+        case Node.Seq(var __, var exprs) -> eval_seq(exprs, this.in_loop);
         case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> { assign(name, eval(expr)); yield NONE; }
         case Node.Assign(var __, Node.Attr(var ___, var obj, var attr), var expr) -> { eval(obj).set_attr(attr, eval(expr)); yield NONE; }
         case Node.VarAssign(var __, Node.Ident(var ___, var name), var expr) -> { declare(name, eval(expr)); yield NONE; }
@@ -307,8 +271,29 @@ public final class Interpreter {
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
         case Node.Cmp(var __, var items) -> eval_cmp(items) ? TRUE : FALSE;
         case Node.While(var __, var cond, var body) -> {
-          while(to_bool(eval(cond))) { eval(body); }
+          while(to_bool(eval(cond))) {
+            try { eval_seq(body.exprs(), true); }
+            catch(Control.Break e) { break; }
+            catch(Control.Continue e) { continue; }
+          }
           yield NONE;
+        }
+        case Node.Continue(var __) -> {
+          if(!in_loop) { throw new InterpreterError("`continue` not in loop"); }
+          throw new Control.Continue();
+        }
+        case Node.Break(var __) -> {
+          if(!in_loop) { throw new InterpreterError("`break` not in loop"); }
+          throw new Control.Break();
+        }
+        case Node.Throw(var __, var exception) -> { throw new Control.Exception(eval(exception)); }
+        case Node.Try(var __, var try_block, Node.Ident(var ___, var exception), var catch_block) -> {
+          try { yield eval(try_block); }
+          catch(Control.Exception e) {
+            var scope = new Scope(this, this_obj, in_loop, in_fn);
+            scope.declare(exception, e.value);
+            yield scope.eval(catch_block);
+          }
         }
         case Node.This(var __) -> {
           if(this_obj == null) { throw new InterpreterError("invalid `this` outside of class"); }
@@ -319,11 +304,25 @@ public final class Interpreter {
           yield NONE;
         }
         case Node.Return(var __, var expr) -> {
-          throw new ReturnException(expr != null ? eval(expr) : NONE);
+          if(!in_fn) { throw new InterpreterError("`return` not in function"); }
+          throw new Control.Return(expr != null ? eval(expr) : NONE);
         }
         default -> throw new NotImplemented(Node.show(n));
       };
       return result;
+    }
+
+    public Value eval_seq(java.util.List<Node> exprs, boolean in_loop) {
+      if(exprs.isEmpty()) return NONE;
+      var it = exprs.iterator();
+      var scope = new Scope(this, this_obj, in_loop, this.in_fn);
+      while(true) {
+        var expr = it.next();
+        var value = scope.eval(expr);
+        if(!it.hasNext()) {
+          return value;
+        }
+      }
     }
 
     private Obj.Cls class_declaration(String name, java.util.List<Node> declarations) {
@@ -401,5 +400,5 @@ public final class Interpreter {
     }
   }
 
-  public static Value eval(Node n) { return new Scope(root, null).eval(n); }
+  public static Value eval(Node n) { return new Scope(root, null, false, false).eval(n); }
 }

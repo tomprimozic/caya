@@ -122,11 +122,13 @@ integer = [0-9](_?[0-9]+)*
   "struct"                    { return token(STRUCT); }
   "class"                     { return token(CLASS); }
   "this"                      { return token(THIS); }
+  "super"                     { return token(SUPER); }
   "forall"                    { return token(FORALL); }
   "exists"                    { return token(EXISTS); }
   "do"                        { return token(DO); }
   "try"                       { return token(TRY); }
   "catch"                     { return token(CATCH); }
+  "finally"                   { return token(FINALLY); }
   "throw"                     { return token(THROW); }
 
   /* the rest */

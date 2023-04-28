@@ -27,7 +27,7 @@
 
 %token <String> IDENT ATOM INTEGER STRING ERROR
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
-%token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS THIS FORALL EXISTS DO TRY CATCH THROW
+%token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS THIS SUPER FORALL EXISTS DO TRY CATCH THROW FINALLY
 %token DOT "." DOTDOTDOT "..." COMMA "," SEMICOLON ";" ASSIGN "=" ARROW "->"
 %token PLUS "+" MINUS "-" STAR "*"
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
@@ -62,12 +62,18 @@ statement:
     assign
   | VAR tuple_expr                  { $$ = var(@$, $2); }
   | VAR tuple_expr "=" tuple_expr   { $$ = var(@$, $2, $4); }
+  | BREAK                           { $$ = break_(@$); }
+  | CONTINUE                        { $$ = continue_(@$); }
+  | PRINT                           { $$ = print(@$); }
+  | PRINT expr                      { $$ = print(@$, $2); }
   | RETURN                          { $$ = return_(@$); }
   | RETURN tuple_expr               { $$ = return_(@$, $2); }
   | block_if
   | WHILE expr block                { $$ = while_(@$, $2, $3); }
   | FUNC arg block                  { $$ = func(@$, $2, $3); }
   | CLASS expr block                { $$ = class_(@$, $2, $3); }
+  | TRY block CATCH term block      { $$ = try_(@$, $2, $4, $5); }
+  | THROW expr                      { $$ = throw_(@$, $2); }
 
 assign:
     tuple_expr "=" tuple_expr       { $$ = assign(@$, $1, $3); }

@@ -109,8 +109,14 @@ public class ParserHelper {
   Node arrow(Location loc, List<Node> params, Node body) { return new Arrow(loc, params, body); }
   Node func(Location loc, Node declaration, Seq body) { return new Func(loc, declaration, body); }
   Node while_(Location loc, Node cond, Seq body) { return new While(loc, cond, body); }
+  Node break_(Location loc) { return new Break(loc); }
+  Node continue_(Location loc) { return new Continue(loc); }
   Node if_block(Location loc, Node cond, Seq then) { return new If(loc, cond, then); }
   Node if_block(Location loc, Node cond, Seq then, Node else_) { return new IfElse(loc, cond, then, else_); }
+  Node print(Location loc) { return new Print(loc, null); }    // TODO: don't use `null`
+  Node print(Location loc, Node value) { return new Print(loc, value); }
   Node return_(Location loc) { return new Return(loc, null); }    // TODO: don't use `null`
   Node return_(Location loc, Node value) { return new Return(loc, value); }
+  Node throw_(Location loc, Node exception) { return new Throw(loc, exception); }
+  Node try_(Location loc, Seq try_block, Node exception, Seq catch_block) { return new Try(loc, try_block, exception, catch_block); }
 }

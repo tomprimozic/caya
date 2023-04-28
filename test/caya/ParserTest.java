@@ -90,7 +90,8 @@ public class ParserTest {
       arguments("{x=1, y=2, }", "Record[[Arg[Ident[x], Int[1]], Arg[Ident[y], Int[2]]]]"),
       arguments("{x=3, ...a, y=a}", "Record[[Arg[Ident[x], Int[3]], Spread[Ident[a]], Arg[Ident[y], Ident[a]]]]"),
       arguments("(1, 3, 4).pop()", "Call[Attr[Tuple[[Int[1], Int[3], Int[4]]], pop], []]"),
-      arguments("(1; 2, 3; 4)", "Seq[[Int[1], Tuple[[Int[2], Int[3]]], Int[4]]]")
+      arguments("(1; 2, 3; 4)", "Seq[[Int[1], Tuple[[Int[2], Int[3]]], Int[4]]]"),
+      arguments("try { throw 1 } catch e { print e }", "Try[Seq[[Throw[Int[1]]]], Ident[e], Seq[[Print[Ident[e]]]]]")
     );
   }
 

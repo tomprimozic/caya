@@ -46,8 +46,13 @@ sealed public interface Node {
   record Cmp(Location loc, List<Node> parts) implements Node {}
   record Arrow(Location loc, List<Node> params, Node body) implements Node {}
   record Func(Location loc, Node declaration, Seq body) implements Node {}
+  record Print(Location loc, Node value) implements Node {}
   record Return(Location loc, Node value) implements Node {}
   record While(Location loc, Node cond, Seq body) implements Node {}
+  record Break(Location loc) implements Node {}
+  record Continue(Location loc) implements Node {}
   record Class(Location loc, Node declaration, Seq body) implements Node {}
   record This(Location loc) implements Node {}
+  record Try(Location loc, Seq try_block, Node exception, Seq catch_block) implements Node {}
+  record Throw(Location loc, Node exception) implements Node {}
 }
