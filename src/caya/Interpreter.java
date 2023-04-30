@@ -169,6 +169,17 @@ public final class Interpreter {
       return parameters;
     }
 
+    public Map<Value, Value> eval_map(Iterable<Node> items) {
+      var entries = new HashMap<Value, Value>();
+      for(var item : items) {
+        switch(item) {
+          case Node.Arg(var __, var key, var value) -> entries.put(eval(key), eval(value));
+          default -> throw new InterpreterError("expected a `key = value` entry, not " + Node.show(item));
+        }
+      }
+      return entries;
+    }
+
     public Value eval(Node n) {
       Value result = switch(n) {
         case Node.Int(var __, var value) -> new Int(value);
@@ -177,8 +188,18 @@ public final class Interpreter {
         case Node.Bool(var __, var value) -> value ? TRUE : FALSE;
         case Node.Atom(var __, var name) -> new Atom(name);
         case Node.Ident(var __, var name) -> lookup(name);
-        case Node.Array(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
-        case Node.Tuple(var __, var items) -> Vector.make(items.stream().map(this::eval).toList());
+        case Node.List(var __, var items) -> new List(items.stream().map(this::eval).toArray(size -> new Value[size]));
+        case Node.Vector(var __, var items) -> {
+          if(items.size() == 0) { yield Vector.empty; }   // TODO: how to specify an empty index?
+          yield switch(items.get(0)) {
+            case Node.Arg(var ___, var key, var value) -> // index
+              new Index(eval_map(items));
+            default -> // vector
+              Vector.make(items.stream().map(this::eval));
+          };
+        }
+        case Node.Tuple(var __, var items) -> Vector.make(items.stream().map(this::eval));
+        case Node.Dict(var __, var fields) -> new Dict(eval_map(fields));
         case Node.Record(var __, var fields) -> {
           var seen_fields = new HashSet<String>();
           var record = new scala.collection.mutable.HashMap<String, Value>();
@@ -221,7 +242,7 @@ public final class Interpreter {
             switch(arg) {
               case Node.Arg(var ___, Node.Ident(var ____, var name), var expr) -> {
                 if(named_args.containsKey(name)) {
-                  throw new InterpreterError("duplicated named argumeng `" + name + "`");
+                  throw new InterpreterError("duplicated named argument `" + name + "`");
                 }
                 named_args.put(name, eval(expr));
               }

@@ -2,6 +2,7 @@ package caya;
 
 import scala.collection.immutable.HashMap;
 import scala.collection.Map;
+import scala.collection.JavaConverters;
 
 import java.util.NoSuchElementException;
 
@@ -26,19 +27,19 @@ public final class Record extends Value {
   public String toString() {
     var s = new StringBuilder("{");
     var first = true;
-    var it = fields.iterator();
-    while(it.hasNext()) {
+    for(var entry : JavaConverters.asJava(fields).entrySet()) {
       if(first) {
         first = false;
       } else {
         s.append(", ");
       }
-      var pair = it.next();
-      s.append(pair._1());
+      s.append(entry.getKey());
       s.append('=');
-      s.append(pair._2());
+      s.append(entry.getValue());
     }
     s.append('}');
     return s.toString();
   }
+
+  @Override public int hashCode() { return Runtime.combine_hash(Record.class.hashCode(), Runtime.hash_mapping(JavaConverters.asJava(fields).entrySet())); }
 }

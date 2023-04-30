@@ -84,6 +84,16 @@ integer = [0-9](_?[0-9]+)*
   "-"                         { return token(MINUS); }
   "+"                         { return token(PLUS); }
   "*"                         { return token(STAR); }
+  "/"                         { return token(SLASH); }
+  "%"                         { return token(PERCENT); }
+  "^"                         { return token(CARET); }
+  "|"                         { return token(PIPE); }
+  "&"                         { return token(AMPERSAND); }
+  "_"                         { return token(UNDERSCORE); }
+  "?"                         { return token(WHAT); }
+  "!"                         { return token(BANG); }
+  "@"                         { return token(AT); }
+  "#"                         { return token(HASH); }
   "("                         { return token(LPAREN); }
   ")"                         { return token(RPAREN); }
   "["                         { return token(LBRACKET); }

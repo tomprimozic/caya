@@ -87,10 +87,12 @@ public class ParserHelper {
   Node attr(Location loc, Node obj, String attr) { return new Attr(loc, obj, attr); }
   Node arg(Location loc, Node name, Node value) { return new Arg(loc, name, value); }
   Node record(Location loc, List<Node> fields) { return new Node.Record(loc, fields); }
+  Node dict(Location loc, List<Node> fields) { return new Node.Dict(loc, fields); }
   Node spread(Location loc, Node expr) { return new Spread(loc, expr); }
   Node paren(Location loc, Node expr) { return expr; }    // TODO: should be a different Node, to update location
   Node tuple(Location loc, List<Node> items) { return new Tuple(loc, items); }
-  Node array(Location loc, List<Node> items) { return new Array(loc, items); }
+  Node list(Location loc, List<Node> items) { return new Node.List(loc, items); }
+  Node vector(Location loc, List<Node> items) { return new Node.Vector(loc, items); }
   Node call(Location loc, Node fn, List<Node> args) { return new Call(loc, fn, args); }
   Node item(Location loc, Node expr, List<Node> items) { return new Item(loc, expr, items); }
   Seq seq(Location loc, List<Node> exprs) { return new Seq(loc, exprs); }

@@ -24,7 +24,7 @@ public class LexerTest {
       arguments("1.x", "INTEGER(1) . IDENT(x)"),
       arguments("1.2", "INTEGER(1) . INTEGER(2)"),
       arguments("1.e2", "INTEGER(1) . IDENT(e2)"),
-      arguments("1._", "INTEGER(1) . IDENT(_)"),
+      arguments("1._", "INTEGER(1) . _"),
       arguments("1_000", "INTEGER(1_000)"),
       arguments("019", "INTEGER(019)"),
       arguments("non none nones xnone", "IDENT(non) NONE IDENT(nones) IDENT(xnone)"),
@@ -34,7 +34,7 @@ public class LexerTest {
       arguments("0x1", "INTEGER(0) IDENT(x1)"),
       arguments("0b6", "INTEGER(0) IDENT(b6)"),
       arguments("`xa", "ATOM(xa)"),
-      arguments(".((...-++=]);;..[,=={}", ". ( ( ... - + + = ] ) ; ; . . [ , == { }"),
+      arguments(".((...-++=]);;..[,=={}@!#%^//", ". ( ( ... - + + = ] ) ; ; . . [ , == { } @ ! # % ^ / /"),
       arguments("'a' '\\t' '\\'' \"f\"", "STRING(a) STRING(\t) STRING(') STRING(f)"),
       arguments("1 < x <= 5", "INTEGER(1) < IDENT(x) <= INTEGER(5)")
     );

@@ -29,11 +29,11 @@ public class ParserTest {
       arguments("(1)", "Int[1]"),
       arguments("f()", "Call[Ident[f], []]"),
       arguments("f(1)", "Call[Ident[f], [Int[1]]]"),
-      arguments("[]", "Array[[]]"),
-      arguments("[1]", "Array[[Int[1]]]"),
-      arguments("[1,]", "Array[[Int[1]]]"),
-      arguments("[9, 7,]", "Array[[Int[9], Int[7]]]"),
-      arguments("[1, 2, 3]", "Array[[Int[1], Int[2], Int[3]]]"),
+      arguments("[]", "Vector[[]]"),
+      arguments("[1]", "Vector[[Int[1]]]"),
+      arguments("[1,]", "Vector[[Int[1]]]"),
+      arguments("[9, 7,]", "Vector[[Int[9], Int[7]]]"),
+      arguments("[1, 2, 3]", "Vector[[Int[1], Int[2], Int[3]]]"),
       arguments("a.push(1, 8)", "Call[Attr[Ident[a], push], [Int[1], Int[8]]]"),
       arguments("_", "Ident[_]"),
       arguments("x._", "Attr[Ident[x], _]"),
@@ -91,7 +91,10 @@ public class ParserTest {
       arguments("{x=3, ...a, y=a}", "Record[[Arg[Ident[x], Int[3]], Spread[Ident[a]], Arg[Ident[y], Ident[a]]]]"),
       arguments("(1, 3, 4).pop()", "Call[Attr[Tuple[[Int[1], Int[3], Int[4]]], pop], []]"),
       arguments("(1; 2, 3; 4)", "Seq[[Int[1], Tuple[[Int[2], Int[3]]], Int[4]]]"),
-      arguments("try { throw 1 } catch e { print e }", "Try[Seq[[Throw[Int[1]]]], Ident[e], Seq[[Print[Ident[e]]]]]")
+      arguments("try { throw 1 } catch e { print e }", "Try[Seq[[Throw[Int[1]]]], Ident[e], Seq[[Print[Ident[e]]]]]"),
+      arguments("!{true = 1, 'x' = z}", "Dict[[Arg[Bool[true], Int[1]], Arg[Str[x], Ident[z]]]]"),
+      arguments("[true = 1, 'x' = z]", "Vector[[Arg[Bool[true], Int[1]], Arg[Str[x], Ident[z]]]]"),
+      arguments("![1, false, '.']", "List[[Int[1], Bool[false], Str[.]]]")
     );
   }
 

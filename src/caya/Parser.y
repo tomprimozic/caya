@@ -1,5 +1,7 @@
 %code imports {
   import java.util.*;
+
+  @SuppressWarnings("unchecked")
 }
 
 %language "Java"
@@ -29,7 +31,8 @@
 %token NONE TRUE FALSE LET VAR IF THEN ELSE FOR IN WHILE RETURN BREAK CONTINUE
 %token NOT OR AND FUNC PRINT MODULE IMPORT MATCH TYPE RECORD STRUCT CLASS THIS SUPER FORALL EXISTS DO TRY CATCH THROW FINALLY
 %token DOT "." DOTDOTDOT "..." COMMA "," SEMICOLON ";" ASSIGN "=" ARROW "->"
-%token PLUS "+" MINUS "-" STAR "*"
+%token PIPE "|" AMPERSAND "&" UNDERSCORE "_" WHAT "?" BANG "!" AT "@" HASH "#"
+%token PLUS "+" MINUS "-" STAR "*" SLASH "/" PERCENT "%" CARET "^"
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
 
@@ -142,11 +145,13 @@ atom:
   | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
   | atom "." IDENT                  { $$ = attr(@$, $1, $3); }
+  | atom "." "_"                    { $$ = attr(@$, $1, "_"); }
   | atom "(" args0 ")"              { $$ = call(@$, $1, $3); }
   | atom "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
 
 term:
     IDENT                           { $$ = ident(@$, $1); }
+  | "_"                             { $$ = ident(@$, "_"); }
   | INTEGER                         { $$ = integer(@$, $1); }
   | TRUE                            { $$ = bool(@$, true); }
   | FALSE                           { $$ = bool(@$, false); }
@@ -156,8 +161,10 @@ term:
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | THIS                            { $$ = this_(@$); }
   | "(" expr ")"                    { $$ = paren(@$, $2); }
-  | "[" exprs0 "]"                  { $$ = array(@$, $2); }
+  | "[" args0 "]"                   { $$ = vector(@$, $2); }
   | "{" args0 "}"                   { $$ = record(@$, $2); }
+  | "!" "[" exprs0 "]"              { $$ = list(@$, $3); }
+  | "!" "{" args0 "}"               { $$ = dict(@$, $3); }
 
 exprs0:
     %empty                          { $$ = list(); }

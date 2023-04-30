@@ -26,13 +26,15 @@ sealed public interface Node {
   record None(Location loc) implements Node {}
   record Attr(Location loc, Node expr, String attr) implements Node {}
   record Arg(Location loc, Node name, Node value) implements Node {}
-  record Record(Location loc, List<Node> fields) implements Node {}
+  record Record(Location loc, java.util.List<Node> fields) implements Node {}
+  record Dict(Location loc, java.util.List<Node> fields) implements Node {}
   record Spread(Location loc, Node expr) implements Node {}
-  record Tuple(Location loc, List<Node> items) implements Node {}
-  record Array(Location loc, List<Node> items) implements Node {}
-  record Item(Location loc, Node expr, List<Node> items) implements Node {}
-  record Call(Location loc, Node fn, List<Node> args) implements Node {}
-  record Seq(Location loc, List<Node> exprs) implements Node {}
+  record Tuple(Location loc, java.util.List<Node> items) implements Node {}
+  record Vector(Location loc, java.util.List<Node> items) implements Node {}
+  record List(Location loc, java.util.List<Node> items) implements Node {}
+  record Item(Location loc, Node expr, java.util.List<Node> items) implements Node {}
+  record Call(Location loc, Node fn, java.util.List<Node> args) implements Node {}
+  record Seq(Location loc, java.util.List<Node> exprs) implements Node {}
   record Assign(Location loc, Node pattern, Node value) implements Node {}
   record Var(Location loc, Node pattern) implements Node {}
   record VarAssign(Location loc, Node pattern, Node value) implements Node {}
@@ -40,11 +42,11 @@ sealed public interface Node {
   record Binary(Location loc, Ident op, Node left, Node right) implements Node {}
   record If(Location loc, Node cond, Node then) implements Node {}
   record IfElse(Location loc, Node cond, Node then, Node else_) implements Node {}
-  record And(Location loc, List<Node> exprs) implements Node {}
-  record Or(Location loc, List<Node> exprs) implements Node {}
+  record And(Location loc, java.util.List<Node> exprs) implements Node {}
+  record Or(Location loc, java.util.List<Node> exprs) implements Node {}
   record Not(Location loc, Node expr) implements Node {}
-  record Cmp(Location loc, List<Node> parts) implements Node {}
-  record Arrow(Location loc, List<Node> params, Node body) implements Node {}
+  record Cmp(Location loc, java.util.List<Node> parts) implements Node {}
+  record Arrow(Location loc, java.util.List<Node> params, Node body) implements Node {}
   record Func(Location loc, Node declaration, Seq body) implements Node {}
   record Print(Location loc, Node value) implements Node {}
   record Return(Location loc, Node value) implements Node {}

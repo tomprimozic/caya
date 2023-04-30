@@ -3,6 +3,7 @@ package caya;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 import caya.Builtins.BuiltinValue;
 import caya.Builtins.Descriptor;
@@ -78,6 +79,18 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
     return result;
   }
 
+  public int hashCode() { return Runtime.hash_sequence(this); }
+  @Override public boolean equals(Object other) {
+    if(other instanceof Vector v && size_int32() == v.size_int32()) {
+      var this_it = iterator();
+      var other_it = iterator();
+      while(this_it.hasNext()) {
+        if(!this_it.next().equals(other_it.next())) { return false;}
+      }
+      return true;
+    } else { return false; }
+  }
+
   private static class VectorIterator<E extends Value> implements Iterator<E> {
     private Object[] current;
     private Left<E> left;
@@ -140,13 +153,14 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
   @Override
   public Iterator<E> iterator() { return new VectorIterator<>(this); }
 
+  public static <E extends Value> Vector<E> make(Stream<E> items) { return make(items.iterator()); }
+  public static <E extends Value> Vector<E> make(Iterable<E> items) { return make(items.iterator()); }
+
   @SuppressWarnings("unchecked")
-  public static <E extends Value> Vector<E> make(Iterable<E> items) {
+  public static <E extends Value> Vector<E> make(Iterator<E> items) {
     // TODO: this can probably be optimised
     Vector<E> result = (Vector<E>) Vector.empty;
-    for(var item : items) {
-      result = result.append(item);
-    }
+    while(items.hasNext()) { result = result.append(items.next()); }
     return result;
   }
 
@@ -167,7 +181,7 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
     return s.toString();
   }
 
-  private <A extends Half<E, A, B>, B extends Half<E, B, A>> Vector<E> push(E e, A other, B to) {
+  private <A extends Half<E, A, B>, B extends Half<E, B, A>> Vector<E> push_internal(E e, A other, B to) {
     if(to.extra.length == SIZE && to.data_size >= (1 << to.shift) && other.shift < to.shift) {
       if(other.data == null) {
         return to.vector(
@@ -190,8 +204,22 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
     }
   }
 
-  public Vector<E> append(E e) { /* push_right */ return push(e, left, right); }
-  public Vector<E> push(E e) { /* push_left or prepend */ return push(e, right, left); }
+  public Vector<E> append_one(E e) { return push_internal(e, left, right); }
+  public Vector<E> push_one(E e) { return push_internal(e, right, left); }
+
+  @SafeVarargs
+  final public Vector<E> append(E... items) { /* push_right */
+    var result = this;
+    for(var item : items) { result = result.append_one(item); }
+    return result;
+  }
+
+  @SafeVarargs
+  final public Vector<E> push(E... items) { /* push_left or prepend */
+    var result = this;
+    for(var item : items) { result = result.push_one(item); }
+    return result;
+  }
 
   private <A extends Half<E, A, B>, B extends Half<E, B, A>> Vector<E> pop(A other, B from) {
     if(from.extra.length <= 1) {         // will change `data`

@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import scala.collection.JavaConverters;
 import scala.collection.mutable.ArrayDeque;
 import scala.collection.ArrayOps;
 
@@ -16,7 +17,7 @@ public final class Builtins {
       case -1 -> new Int(BigInteger.ONE.negate());
       case 0 -> new Int(BigInteger.ZERO);
       case 1 -> new Int(BigInteger.ONE);
-      case default -> { throw new RuntimeException("impossible"); }
+      default -> { throw new RuntimeException("impossible"); }
     };
   }
 
@@ -26,6 +27,8 @@ public final class Builtins {
     public Int(int value) { this.value = BigInteger.valueOf(value); }
     public Int(long value) { this.value = BigInteger.valueOf(value); }
     @Override public String toString() { return value.toString(); }
+    @Override public int hashCode() { return value.hashCode(); }
+    @Override public boolean equals(Object other) { return other instanceof Int i && i.value.equals(this.value); }
   }
 
   public final static class Bool extends Value {
@@ -136,6 +139,8 @@ public final class Builtins {
       }
       return method.call(obj, args);
     }
+    @Override public int hashCode() { return Runtime.combine_hash(BoundMethod.class, obj, method); }
+    @Override public boolean equals(Object other) { return other instanceof BoundMethod m && m.obj.equals(this.obj) && m.method.equals(this.method); }
   }
 
   public static final class Function extends Value {
@@ -148,6 +153,8 @@ public final class Builtins {
       }
       return method.call(null, args);
     }
+    @Override public int hashCode() { return method.hashCode(); }
+    @Override public boolean equals(Object other) { return other instanceof Function f && f.method.equals(this.method); }
   }
 
   public final static class Str extends BuiltinValue {
@@ -156,13 +163,28 @@ public final class Builtins {
     @Override public String toString() { return value; }
 
     public Int size() { return new Int(value.length()); }
-    public Value join(List items) { return new Str(items.data.mkString(this.value)); }
+    public Value join(Vector<Value> items) {
+      var result = new StringBuilder();
+      var first = true;
+      for(var item : items) {
+        if(first) {
+          first = false;
+        } else {
+          result.append(value);
+        }
+        result.append(item);
+      }
+      return new Str(result.toString());
+    }
 
     public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Str.class,
       new String[] {"size"},
       new String[] {"join"}
     );
+
+    @Override public int hashCode() { return value.hashCode(); }
+    @Override public boolean equals(Object other) { return other instanceof Str s && s.value.equals(this.value); }
   }
 
   public final static class Atom extends BuiltinValue {
@@ -177,6 +199,9 @@ public final class Builtins {
       new String[] {"name"},
       new String[] {}
     );
+
+    @Override public int hashCode() { return Runtime.combine_hash(Atom.class, name); }
+    @Override public boolean equals(Object other) { return other instanceof Atom a && a.name.equals(this.name); }
   }
 
   public final static class List extends BuiltinValue {
@@ -186,7 +211,7 @@ public final class Builtins {
       data = new ArrayDeque<>(items.length);
       data.addAll(new ArrayOps.ArrayIterator<>(items));
     }
-    @Override public String toString() { return data.mkString("[", ", ", "]"); }
+    @Override public String toString() { return data.mkString("![", ", ", "]"); }
 
     public void push(Value item) { data.prepend(item); }
     public void append(Value... items) { for(var item : items) { data.append(item); } }
@@ -203,11 +228,15 @@ public final class Builtins {
       new String[] {"size", "last"},
       new String[] {"push", "append", "pop", "shift"}
     );
+
+    @Override public int hashCode() { throw new Interpreter.InterpreterError("mutable list is not hashable"); }
+    @Override public boolean equals(Object other) { return other instanceof List l && l.data.equals(this.data); }
   }
 
-  class Dict extends BuiltinValue {
+  public static class Dict extends BuiltinValue {
     public final LinkedHashMap<Value, Value> data;
     public Dict() { data = new LinkedHashMap<>(); }
+    public Dict(Map<Value, Value> data) { this.data = new LinkedHashMap<>(data); }
 
     public Value get(Value key) { return data.get(key); }
     public Int size() { return new Int(data.size()); }
@@ -221,5 +250,30 @@ public final class Builtins {
       new String[] {"size"},
       new String[] {"clear"}
     );
+
+    @Override public int hashCode() { throw new Interpreter.InterpreterError("mutable dict is not hashable"); }
+    @Override public boolean equals(Object other) { return other instanceof Dict d && d.data.equals(this.data); }
+  }
+
+  public static class Index extends BuiltinValue {
+    public final scala.collection.immutable.HashMap<Value, Value> data;
+    public Index() { data = new scala.collection.immutable.HashMap<>(); }
+    public Index(scala.collection.immutable.HashMap<Value, Value> data) { this.data = data; }
+    public Index(Map<Value, Value> data) { this.data = scala.collection.immutable.HashMap.from(JavaConverters.asScala(data)); }
+
+    public Value get(Value key) { return data.apply(key); }
+    public Index update(Value key, Value value) { return new Index(data.updated(key, value)); }
+    public Int size() { return new Int(data.size()); }
+
+    @Override public Value get_item(Value key) { return data.apply(key); }
+
+    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Index.class,
+      new String[] {"size"},
+      new String[] {"get", "update"}
+    );
+
+    @Override public int hashCode() { return Runtime.hash_mapping(JavaConverters.asJava(this.data).entrySet()); }
+    @Override public boolean equals(Object other) { return other instanceof Index d && d.data.equals(this.data); }
   }
 }
