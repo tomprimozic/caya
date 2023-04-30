@@ -41,5 +41,6 @@ public final class Record extends Value {
     return s.toString();
   }
 
+  @Override public boolean equals(Object other) { return other instanceof Record r && r.fields.equals(this.fields); }
   @Override public int hashCode() { return Runtime.combine_hash(Record.class.hashCode(), Runtime.hash_mapping(JavaConverters.asJava(fields).entrySet())); }
 }

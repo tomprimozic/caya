@@ -99,7 +99,10 @@ public final class Interpreter {
 
   public static final Scope root = new Scope(null, null, false, false);
   static {
-    root.assign("sign", new Builtins.Function("sign"));
+    root.assign("math", new Builtins.Module("math", new HashMap<>(Map.of(
+        "sign", new Builtins.Function("math_sign")
+      )))
+    );
   }
 
   public static final class Scope {

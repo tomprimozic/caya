@@ -81,7 +81,7 @@ public class InterpreterTest {
       arguments("x = 0; [(x = 1; false) or (x = 2; false) or (x = 3; false), x]", "[false, 3]"),
       arguments("x = 1, 2; x", "[1, 2]"),
       arguments("fn f() { return 1, 2 } f()", "[1, 2]"),
-      arguments("[sign(6), sign(-5), sign(0)]", "[1, -1, 0]"),
+      arguments("[math.sign(6), math.sign(-5), math.sign(0)]", "[1, -1, 0]"),
       arguments("x = 1; [(var x = 2; x), x]", "[2, 1]"),
       arguments("x = 1; [(var x = x + 1; x), x]", "[2, 1]"),
       arguments("fn fib(x) { if x < 2 then 1 else fib(x - 1) + fib(x - 2) } [fib(0), fib(1), fib(2), fib(3), fib(4), fib(5), fib(6)]", "[1, 1, 2, 3, 5, 8, 13]"),

@@ -12,7 +12,7 @@ import scala.collection.ArrayOps;
 import caya.Runtime.Value;
 
 public final class Builtins {
-  public static final Int sign(Int value) {
+  public static final Int math_sign(Int value) {
     return switch(value.value.signum()) {
       case -1 -> new Int(BigInteger.ONE.negate());
       case 0 -> new Int(BigInteger.ZERO);
@@ -233,7 +233,7 @@ public final class Builtins {
     @Override public boolean equals(Object other) { return other instanceof List l && l.data.equals(this.data); }
   }
 
-  public static class Dict extends BuiltinValue {
+  public final static class Dict extends BuiltinValue {
     public final LinkedHashMap<Value, Value> data;
     public Dict() { data = new LinkedHashMap<>(); }
     public Dict(Map<Value, Value> data) { this.data = new LinkedHashMap<>(data); }
@@ -255,7 +255,7 @@ public final class Builtins {
     @Override public boolean equals(Object other) { return other instanceof Dict d && d.data.equals(this.data); }
   }
 
-  public static class Index extends BuiltinValue {
+  public final static class Index extends BuiltinValue {
     public final scala.collection.immutable.HashMap<Value, Value> data;
     public Index() { data = new scala.collection.immutable.HashMap<>(); }
     public Index(scala.collection.immutable.HashMap<Value, Value> data) { this.data = data; }
@@ -275,5 +275,21 @@ public final class Builtins {
 
     @Override public int hashCode() { return Runtime.hash_mapping(JavaConverters.asJava(this.data).entrySet()); }
     @Override public boolean equals(Object other) { return other instanceof Index d && d.data.equals(this.data); }
+  }
+
+  public final static class Module extends Value {
+    public final String name;
+    public final HashMap<String, Value> attrs;
+    public Module(String name, HashMap<String, Value> attrs) {
+      this.name = name; this.attrs = attrs;
+    }
+
+    public Value get_attr(String attr) {
+      var value = attrs.get(attr);
+      if(value == null) { throw new Interpreter.AttrError(getClass(), attr); }
+      return value;
+    }
+
+    public String toString() { return "module " + name; }
   }
 }
