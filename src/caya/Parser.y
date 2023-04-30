@@ -36,7 +36,7 @@
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
 
-%type <Node> statement block_if assign tuple_expr expr arrow simple arith atom term arg
+%type <Node> line_statement block_statement block_if assign tuple_expr expr arrow simple arith atom term arg
 %type <List<Node>> and_exprs or_exprs cmp
 %type <List<Node>> exprs0 exprs1 exprs2 args0 args1 statements0 statements1
 %type <Node.Seq> block
@@ -51,17 +51,29 @@
 start:
     statements0 YYEOF               { this.result = $1; }
 
+sep1: ";" | sep1 ";"
+sep0: %empty | sep1
+
 statements0:
-    %empty                          { $$ = list(); }
+    sep0                            { $$ = list(); }
+  | tuple_expr                      { $$ = list($1); }
+  | line_statement                  { $$ = list($1); }
+  | statements1 tuple_expr          { $$ = list($1, $2); }
+  | statements1 line_statement      { $$ = list($1, $2); }
   | statements1
 
 statements1:
-    tuple_expr                      { $$ = list($1); }
-  | statement                       { $$ = list($1); }
-  | statements1 ";" tuple_expr      { $$ = list($1, $3); }
-  | statements1 ";" statement       { $$ = list($1, $3); }
+    tuple_expr sep1                       { $$ = list($1); }
+  | error sep1                            { $$ = list(error(@$, "statements1")); }
+  | tuple_expr error sep1                 { $$ = list(error(@$, "tuple_expr")); }
+  | line_statement sep1                   { $$ = list($1); }
+  | line_statement error sep1             { $$ = list(error(@$, "line_statement")); }
+  | block_statement sep0                  { $$ = list($1); }
+  | statements1 tuple_expr sep1           { $$ = list($1, $2); }
+  | statements1 line_statement sep1       { $$ = list($1, $2); }
+  | statements1 block_statement sep0      { $$ = list($1, $2); }
 
-statement:
+line_statement:
     assign
   | VAR tuple_expr                  { $$ = var(@$, $2); }
   | VAR tuple_expr "=" tuple_expr   { $$ = var(@$, $2, $4); }
@@ -71,12 +83,14 @@ statement:
   | PRINT expr                      { $$ = print(@$, $2); }
   | RETURN                          { $$ = return_(@$); }
   | RETURN tuple_expr               { $$ = return_(@$, $2); }
-  | block_if
+  | THROW expr                      { $$ = throw_(@$, $2); }
+
+block_statement:
+    block_if
   | WHILE expr block                { $$ = while_(@$, $2, $3); }
   | FUNC arg block                  { $$ = func(@$, $2, $3); }
   | CLASS expr block                { $$ = class_(@$, $2, $3); }
   | TRY block CATCH term block      { $$ = try_(@$, $2, $4, $5); }
-  | THROW expr                      { $$ = throw_(@$, $2); }
 
 assign:
     tuple_expr "=" tuple_expr       { $$ = assign(@$, $1, $3); }
@@ -140,14 +154,16 @@ arith:
 
 atom:
     term
-  | "(" exprs2 ")"                  { $$ = tuple(@$, $2); }
-  | "(" statement ")"               { $$ = seq(@$, list($2)); }
-  | "(" expr ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
-  | "(" statement ";" statements1 ")"    { $$ = seq(@$, list($2, $4)); }
-  | atom "." IDENT                  { $$ = attr(@$, $1, $3); }
-  | atom "." "_"                    { $$ = attr(@$, $1, "_"); }
-  | atom "(" args0 ")"              { $$ = call(@$, $1, $3); }
-  | atom "[" exprs0 "]"             { $$ = item(@$, $1, $3); }
+  | "(" exprs2 ")"                            { $$ = tuple(@$, $2); }
+  | "(" line_statement ")"                    { $$ = seq(@$, list($2)); }
+  | "(" block_statement ")"                   { $$ = seq(@$, list($2)); }
+  | "(" expr ";" statements0 ")"              { $$ = seq(@$, list($2, $4)); }
+  | "(" line_statement ";" statements0 ")"    { $$ = seq(@$, list($2, $4)); }
+  | "(" block_statement ";" statements0 ")"   { $$ = seq(@$, list($2, $4)); }
+  | atom "." IDENT                            { $$ = attr(@$, $1, $3); }
+  | atom "." "_"                              { $$ = attr(@$, $1, "_"); }
+  | atom "(" args0 ")"                        { $$ = call(@$, $1, $3); }
+  | atom "[" exprs0 "]"                       { $$ = item(@$, $1, $3); }
 
 term:
     IDENT                           { $$ = ident(@$, $1); }

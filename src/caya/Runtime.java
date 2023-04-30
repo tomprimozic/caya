@@ -2,7 +2,6 @@ package caya;
 
 import java.util.Map;
 import com.dynatrace.hash4j.hashing.Hashing;
-import java.util.Objects;
 
 
 public final class Runtime {
@@ -56,6 +55,4 @@ public final class Runtime {
     }
     return combine_hash(hash, count);
   }
-
-
 }
