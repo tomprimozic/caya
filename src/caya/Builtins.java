@@ -33,17 +33,24 @@ public final class Builtins {
 
   public final static class Bool extends Value {
     public final boolean value;
-    public Bool(boolean value) { this.value = value; }
-    @Override public String toString() { return Boolean.toString(value); }
+    private Bool(boolean value) { this.value = value; }
+    @Override public String toString() { return value ? "true" : "false"; }
   }
 
   public final static class None extends Value {
+    private None() {}
     @Override public String toString() { return "none"; }
+  }
+
+  public final static class Stop extends Value {
+    private Stop() {}
+    @Override public String toString() { return "iter.stop"; }
   }
 
   public final static None NONE = new None();
   public final static Bool TRUE = new Bool(true);
   public final static Bool FALSE = new Bool(false);
+  public final static Stop STOP = new Stop();
 
   public static Value null_to_none(Value value) { return value == null ? Builtins.NONE : value; }
 
@@ -163,10 +170,12 @@ public final class Builtins {
     @Override public String toString() { return value; }
 
     public Int size() { return new Int(value.length()); }
-    public Value join(Vector<Value> items) {
+    public Value join(Value items) {
       var result = new StringBuilder();
       var first = true;
-      for(var item : items) {
+      var it = Runtime.iter(items);
+      while(it.hasNext()) {
+        var item = it.next();
         if(first) {
           first = false;
         } else {
@@ -219,6 +228,7 @@ public final class Builtins {
     public Value shift() { return data.removeLast(true); }
     public Int size() { return new Int(data.size()); }
     public Value last() { return data.last(); }
+    public Iterator iter() { return new Iterator(JavaConverters.asJava(this.data.iterator())); }
 
     @Override public Value get_item(Value item) { return this.data.apply(Interpreter.to_int32(item)); }
     @Override public void set_item(Value item, Value value) { data.update(Interpreter.to_int32(item), value); }
@@ -226,7 +236,7 @@ public final class Builtins {
     public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
       new String[] {"size", "last"},
-      new String[] {"push", "append", "pop", "shift"}
+      new String[] {"push", "append", "pop", "shift", "iter"}
     );
 
     @Override public int hashCode() { throw new Interpreter.InterpreterError("mutable list is not hashable"); }
@@ -291,5 +301,18 @@ public final class Builtins {
     }
 
     public String toString() { return "module " + name; }
+  }
+
+  public final static class Iterator extends BuiltinValue {
+    public final java.util.Iterator<Value> it;
+    public Iterator(java.util.Iterator<Value> it) { this.it = it; }
+
+    public Value next() { return it.hasNext() ? it.next() : STOP; }
+
+    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Iterator.class,
+      new String[] {},
+      new String[] {"next"}
+    );
   }
 }

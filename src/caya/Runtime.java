@@ -55,4 +55,21 @@ public final class Runtime {
     }
     return combine_hash(hash, count);
   }
+
+  public static java.util.Iterator<Value> iter(Value value) {
+    var iter = value.get_attr("iter").call(new Value[0], null);
+    return iter instanceof Builtins.Iterator i ? i.it : new java.util.Iterator<Value>() {
+      private Value next = null;
+      private Value next_method = iter.get_attr("next");
+      private void fetch() { if(next == null) { next = next_method.call(new Value[0], null); } }
+      @Override public boolean hasNext() { fetch(); return next != Builtins.STOP; }
+      @Override public Value next() {
+        fetch();
+        if(next == Builtins.STOP) { throw new java.util.NoSuchElementException(); }
+        var result = next;
+        next = null;
+        return result;
+      }
+    };
+  }
 }

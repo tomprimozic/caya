@@ -35,7 +35,7 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
   public final HashMap<String, Descriptor> attrs() { return ATTRS; }
   public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Vector.class,
     new String[] {"size", "first", "last"},
-    new String[] {"push", "append", "update", "pop", "shift"}
+    new String[] {"push", "append", "update", "pop", "shift", "iter"}
   );
 
   // TODO: can these be optimised?
@@ -80,6 +80,7 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
   }
 
   public int hashCode() { return Runtime.hash_sequence(this); }
+
   @Override public boolean equals(Object other) {
     if(other instanceof Vector v && size_int32() == v.size_int32()) {
       var this_it = iterator();
@@ -152,6 +153,9 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
   }
   @Override
   public Iterator<E> iterator() { return new VectorIterator<>(this); }
+
+  @SuppressWarnings("unchecked")
+  public Builtins.Iterator iter() { return new Builtins.Iterator((Iterator<Value>) this.iterator()); }
 
   public static <E extends Value> Vector<E> make(Stream<E> items) { return make(items.iterator()); }
   public static <E extends Value> Vector<E> make(Iterable<E> items) { return make(items.iterator()); }

@@ -30,6 +30,7 @@ public class InterpreterTest {
       arguments("[].append(1, 2)", "[1, 2]"),
       arguments("'xyzz'.size", "4"),
       arguments("\"'\".join([4,6,7,])", "4'6'7"),
+      arguments("'  '.join(![4,6,7,])", "4  6  7"),
       arguments("", "none"),
       arguments("7; 3", "3"),
       arguments("x = 1; x", "1"),
@@ -106,7 +107,8 @@ public class InterpreterTest {
       arguments("f(x, y=x+1, z=0) = x + y + z; f(5, z=2)", "13"),
       arguments("a = ![]; i = 0; while true { i = i + 1; if i < 5 { continue } if i > 7 { break } a.append(i) } a", "![5, 6, 7]"),
       arguments("f(x) = (try { if x < 0 { throw -1 } x + 4 } catch i { x + i }); [f(3), f(-2)]", "[7, -3]"),
-      arguments("m = [1=2, true=false]; [m[true], m[1]]", "[false, 2]")
+      arguments("m = [1=2, true=false]; [m[true], m[1]]", "[false, 2]"),
+      arguments("fn take(i,xs) { it = xs.iter(); r = {iter = () -> r, next = () -> ( if i > 0 { i = i - 1; it.next() } else {iter.stop} ) };  r} ' '.join(take(3, [1,2,3,4,5]))", "1 2 3")
     );
   }
 

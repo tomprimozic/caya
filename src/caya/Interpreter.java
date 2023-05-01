@@ -101,8 +101,10 @@ public final class Interpreter {
   static {
     root.assign("math", new Builtins.Module("math", new HashMap<>(Map.of(
         "sign", new Builtins.Function("math_sign")
-      )))
-    );
+      ))));
+    root.assign("iter", new Builtins.Module("iter", new HashMap<>(Map.of(
+      "stop", Builtins.STOP
+    ))));
   }
 
   public static final class Scope {
