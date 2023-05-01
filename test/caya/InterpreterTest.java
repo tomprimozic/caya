@@ -108,7 +108,10 @@ public class InterpreterTest {
       arguments("a = ![]; i = 0; while true { i = i + 1; if i < 5 { continue } if i > 7 { break } a.append(i) } a", "![5, 6, 7]"),
       arguments("f(x) = (try { if x < 0 { throw -1 } x + 4 } catch i { x + i }); [f(3), f(-2)]", "[7, -3]"),
       arguments("m = [1=2, true=false]; [m[true], m[1]]", "[false, 2]"),
-      arguments("fn take(i,xs) { it = xs.iter(); r = {iter = () -> r, next = () -> ( if i > 0 { i = i - 1; it.next() } else {iter.stop} ) };  r} ' '.join(take(3, [1,2,3,4,5]))", "1 2 3")
+      arguments("fn take(i,xs) { it = xs.iter(); r = {iter = () -> r, next = () -> ( if i > 0 { i = i - 1; it.next() } else {iter.stop} ) };  r} ' '.join(take(3, [1,2,3,4,5]))", "1 2 3"),
+      arguments("var l = []; for i in [1, 2, 3] { l = l.push(i); } l", "[3, 2, 1]"),
+      arguments("for i in [] {}", "none"),
+      arguments("a = 0; for i in [] { a = a + i; } a", "0")
     );
   }
 

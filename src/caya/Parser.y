@@ -88,6 +88,7 @@ line_statement:
 block_statement:
     block_if
   | WHILE expr block                { $$ = while_(@$, $2, $3); }
+  | FOR expr IN expr block          { $$ = for_(@$, $2, $4, $5); }
   | FUNC arg block                  { $$ = func(@$, $2, $3); }
   | CLASS expr block                { $$ = class_(@$, $2, $3); }
   | TRY block CATCH term block      { $$ = try_(@$, $2, $4, $5); }

@@ -111,6 +111,7 @@ public class ParserHelper {
   Node arrow(Location loc, List<Node> params, Node body) { return new Arrow(loc, params, body); }
   Node func(Location loc, Node declaration, Seq body) { return new Func(loc, declaration, body); }
   Node while_(Location loc, Node cond, Seq body) { return new While(loc, cond, body); }
+  Node for_(Location loc, Node pattern, Node items, Seq body) { return new For(loc, pattern, items, body); }
   Node break_(Location loc) { return new Break(loc); }
   Node continue_(Location loc) { return new Continue(loc); }
   Node if_block(Location loc, Node cond, Seq then) { return new If(loc, cond, then); }

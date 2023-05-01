@@ -304,6 +304,15 @@ public final class Interpreter {
           }
           yield NONE;
         }
+        case Node.For(var __, Node.Ident(var ___, var item), var items, var body) -> {
+          var it = Runtime.iter(eval(items));
+          while(it.hasNext()) {
+            var scope = new Scope(this, this_obj, in_loop, in_fn);
+            scope.declare(item, it.next());
+            scope.eval(body);
+          }
+          yield NONE;
+        }
         case Node.Continue(var __) -> {
           if(!in_loop) { throw new InterpreterError("`continue` not in loop"); }
           throw new Control.Continue();

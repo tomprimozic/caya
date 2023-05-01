@@ -1,7 +1,6 @@
 package caya;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import caya.Parser.Location;
@@ -51,6 +50,7 @@ sealed public interface Node {
   record Print(Location loc, Node value) implements Node {}
   record Return(Location loc, Node value) implements Node {}
   record While(Location loc, Node cond, Seq body) implements Node {}
+  record For(Location loc, Node pattern, Node items, Seq body) implements Node {}
   record Break(Location loc) implements Node {}
   record Continue(Location loc) implements Node {}
   record Class(Location loc, Node declaration, Seq body) implements Node {}
