@@ -80,7 +80,7 @@ line_statement:
   | BREAK                           { $$ = break_(@$); }
   | CONTINUE                        { $$ = continue_(@$); }
   | PRINT                           { $$ = print(@$); }
-  | PRINT expr                      { $$ = print(@$, $2); }
+  | PRINT tuple_expr                { $$ = print(@$, $2); }
   | RETURN                          { $$ = return_(@$); }
   | RETURN tuple_expr               { $$ = return_(@$, $2); }
   | THROW expr                      { $$ = throw_(@$, $2); }

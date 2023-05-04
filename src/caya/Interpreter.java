@@ -100,10 +100,13 @@ public final class Interpreter {
   public static final Scope root = new Scope(null, null, false, false);
   static {
     root.assign("math", new Builtins.Module("math", new HashMap<>(Map.of(
-        "sign", new Builtins.Function("math_sign")
-      ))));
+      "sign", new Builtins.Function("math_sign")
+    ))));
     root.assign("iter", new Builtins.Module("iter", new HashMap<>(Map.of(
       "stop", Builtins.STOP
+    ))));
+    root.assign("http", new Builtins.Module("http", new HashMap<>(Map.of(
+      "get", new Builtins.Function("http_get")
     ))));
   }
 
@@ -342,6 +345,7 @@ public final class Interpreter {
           if(!in_fn) { throw new InterpreterError("`return` not in function"); }
           throw new Control.Return(expr != null ? eval(expr) : NONE);
         }
+        case Node.Print(var __, var expr) -> { System.out.println(eval(expr)); yield NONE; }
         default -> throw new NotImplemented(Node.show(n));
       };
       return result;

@@ -21,6 +21,16 @@ public final class Builtins {
     };
   }
 
+  public static final Str http_get(Str url) throws java.io.IOException, java.net.URISyntaxException {
+    var u = new java.net.URI(url.value);
+    try (var in = u.toURL().openStream()) {
+        byte[] bytes = in.readAllBytes();
+        var contents = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+        in.close();
+        return new Str(contents);
+    }
+  }
+
   public final static class Int extends Value {
     public final BigInteger value;
     public Int(BigInteger value) { this.value = value; }

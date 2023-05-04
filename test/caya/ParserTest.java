@@ -118,7 +118,8 @@ public class ParserTest {
       arguments("(1;)", "Seq[[Int[1]]]"),
       arguments("1 + (1;)", "Binary[Ident[+], Int[1], Seq[[Int[1]]]]"),
       arguments("return;", "Return[null]"),
-      arguments("return 1;", "Return[Int[1]]")
+      arguments("return 1;", "Return[Int[1]]"),
+      arguments("print 1, 2", "Print[Tuple[[Int[1], Int[2]]]]")
 
     );
   }
