@@ -108,6 +108,9 @@ public final class Interpreter {
     root.assign("http", new Builtins.Module("http", new HashMap<>(Map.of(
       "get", new Builtins.Function("http_get")
     ))));
+    root.assign("jvm", new Builtins.Module("jvm", new HashMap<>(Map.of(
+      "cls", new Builtins.Function("jvm_cls")
+    ))));
   }
 
   public static final class Scope {
