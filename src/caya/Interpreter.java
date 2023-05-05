@@ -15,7 +15,7 @@ public final class Interpreter {
   public static class InterpreterError extends RuntimeException {
     public InterpreterError(String msg) { super(msg); }
   }
-  public static final class NotImplemented extends RuntimeException {
+  public static final class NotImplemented extends InterpreterError {
     public NotImplemented(String reason) { super(reason); }
   }
   public static final class AttrError extends InterpreterError {
@@ -111,10 +111,11 @@ public final class Interpreter {
     root.assign("jvm", new Builtins.Module("jvm", new HashMap<>(Map.of(
       "cls", new Builtins.Function("jvm_cls")
     ))));
+    root.assign("load", new Builtins.Function("load"));
   }
 
   public static final class Scope {
-    private final HashMap<String, Value> bindings = new HashMap<>();
+    public final HashMap<String, Value> bindings = new HashMap<>();
     private final Scope parent;
     private final Obj this_obj;
     private final boolean in_loop;
@@ -354,17 +355,20 @@ public final class Interpreter {
       return result;
     }
 
-    public Value eval_seq(java.util.List<Node> exprs, boolean in_loop) {
+    public Value eval_all(java.util.List<Node> exprs) {
       if(exprs.isEmpty()) return NONE;
       var it = exprs.iterator();
-      var scope = new Scope(this, this_obj, in_loop, this.in_fn);
       while(true) {
         var expr = it.next();
-        var value = scope.eval(expr);
+        var value = eval(expr);
         if(!it.hasNext()) {
           return value;
         }
       }
+    }
+
+    public Value eval_seq(java.util.List<Node> exprs, boolean in_loop) {
+      return (new Scope(this, this_obj, in_loop, this.in_fn)).eval_all(exprs);
     }
 
     private Obj.Cls class_declaration(String name, java.util.List<Node> declarations) {

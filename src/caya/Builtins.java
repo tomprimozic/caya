@@ -2,6 +2,7 @@ package caya;
 
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,19 @@ public final class Builtins {
       case 1 -> new Int(BigInteger.ONE);
       default -> { throw new RuntimeException("impossible"); }
     };
+  }
+
+  public static final Module load(Str path) throws java.io.IOException {
+    var p = java.nio.file.Path.of(path.value);
+    var code = java.nio.file.Files.readString(p, java.nio.charset.StandardCharsets.UTF_8);
+    var node = ParserHelper.parse(code);
+    var exprs = switch(node) {
+      case Node.Seq(var __, var nodes) -> nodes;
+      default -> Arrays.asList(node);
+    };
+    var scope = new Interpreter.Scope(Interpreter.root, null, false, false);
+    scope.eval_all(exprs);
+    return new Module(p.getFileName().toString(), scope.bindings);
   }
 
   public static final Str http_get(Str url) throws java.io.IOException, java.net.URISyntaxException {
