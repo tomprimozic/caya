@@ -314,9 +314,11 @@ public final class Interpreter {
         case Node.For(var __, Node.Ident(var ___, var item), var items, var body) -> {
           var it = Runtime.iter(eval(items));
           while(it.hasNext()) {
-            var scope = new Scope(this, this_obj, in_loop, in_fn);
+            var scope = new Scope(this, this_obj, true, in_fn);
             scope.declare(item, it.next());
-            scope.eval(body);
+            try { scope.eval(body); }
+            catch(Control.Break e) { break; }
+            catch(Control.Continue e) { continue; }
           }
           yield NONE;
         }
