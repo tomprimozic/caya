@@ -64,10 +64,10 @@ statements0:
 
 statements1:
     tuple_expr sep1                       { $$ = list($1); }
-  | error sep1                            { $$ = list(error(@$, "statements1")); }
   | tuple_expr error sep1                 { $$ = list(error(@$, "tuple_expr")); }
   | line_statement sep1                   { $$ = list($1); }
   | line_statement error sep1             { $$ = list(error(@$, "line_statement")); }
+  | error sep0                            { $$ = list(error(@$, "statements1")); }
   | block_statement sep0                  { $$ = list($1); }
   | statements1 tuple_expr sep1           { $$ = list($1, $2); }
   | statements1 line_statement sep1       { $$ = list($1, $2); }

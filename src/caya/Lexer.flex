@@ -172,7 +172,7 @@ integer = [0-9](_?[0-9]+)*
   /* normalize newlines */
   \n | \r | \r\n              { buffer.append( '\n' ); }
 
-  <<EOF>>                     { yybegin(YYINITIAL); return token(ERROR, "unexpected EOF in string"); }
+  <<EOF>>                     { yybegin(YYINITIAL); return token(ERROR, "EOF"); }
 }
 
 [^]                           { return token(ERROR, yytext()); }

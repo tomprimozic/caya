@@ -12,13 +12,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class ParserTest {
-  @ParameterizedTest
-  @MethodSource("ok")
-  void test_ok(String code, String expected) {
-    assertEquals(expected, Node.show(Parser.parse(code)));
+
+  private final static Object ERROR = new Object() { @Override public String toString() { return "$ERROR$"; } };
+
+  @ParameterizedTest(name = "\"{0}\"")
+  @MethodSource("syntax")
+  void test_syntax(String code, Object expected) {
+    Object result = ERROR;
+    try {
+      result = Node.show(Parser.parse(code));
+    } catch (Parser.ParserError e) {}
+    assertEquals(expected, result, "\"" + code + "\"");
   }
 
-  private static Stream<Arguments> ok() {
+  private static Stream<Arguments> syntax() {
     return Stream.of(
       arguments("", "Seq[[]]"),
       arguments(";", "Seq[[]]"),
@@ -119,43 +126,35 @@ public class ParserTest {
       arguments("1 + (1;)", "Binary[Ident[+], Int[1], Seq[[Int[1]]]]"),
       arguments("return;", "Return[null]"),
       arguments("return 1;", "Return[Int[1]]"),
-      arguments("print 1, 2", "Print[Tuple[[Int[1], Int[2]]]]")
-
+      arguments("print 1, 2", "Print[Tuple[[Int[1], Int[2]]]]"),
+      arguments("(", "Err[statements1]"),
+      arguments(")", "Err[statements1]"),
+      arguments("()", "Err[statements1]"),
+      arguments("(,)", "Err[statements1]"),
+      arguments("(1, )", "Err[statements1]"),
+      arguments("{,}", "Record[[Err[arg]]]"),
+      arguments("[,]", "Vector[[Err[arg]]]"),
+      arguments("==", "Err[statements1]"),
+      arguments("12__34", ERROR),
+      arguments("1_", ERROR),
+      arguments("0b00112", ERROR),
+      arguments("0o5679", ERROR),
+      arguments("0x1fg", ERROR),
+      arguments("*", "Err[statements1]"),
+      arguments("(;)", "Err[statements1]"),
+      arguments("1 + (;)", "Err[statements1]"),
+      arguments("(1,2;)", "Err[statements1]"),
+      arguments("(1,return;)", "Err[statements1]"),
+      arguments("1 + (x, y;)", "Err[statements1]"),
+      arguments("return 1,", "Err[statements1]"),
+      arguments("return 1,; f", "Seq[[Err[statements1], Ident[f]]]"),
+      arguments("a and b or c", ERROR),
+      arguments("(,) -> 1", "Seq[[Err[statements1], Int[1]]]"),
+      arguments("f(x) and x -> x", ERROR),
+      arguments(" (1, 2; 3, 4)", "Err[statements1]"),
+      arguments("f(1, 2; 3, 4)", "Call[Ident[f], [Err[arg], Int[4]]]"),
+      arguments("f(1; 2, 3; 4)", "Call[Ident[f], [Err[arg]]]"),
+      arguments("f(1; 2)", "Call[Ident[f], [Err[arg]]]")
     );
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {
-    "(",
-    ")",
-    "()",
-    "(,)",
-    "(1, )",
-    "{,}",
-    "[,]",
-    "==",
-    "12__34",
-    "1_",
-    "0b00112",
-    "0o5679",
-    "0x1fg",
-    "*",
-    "(;)",
-    "1 + (;)",
-    "(1,2;)",
-    "(1,return;)",
-    "1 + (x, y;)",
-    "return 1,",
-    "return 1,; f",
-    "a and b or c",
-    "(,) -> 1",
-    "f(x) and x -> x",
-    " (1, 2; 3, 4)",
-    "f(1, 2; 3, 4)",
-    "f(1; 2, 3; 4)",
-    "f(1; 2)",
-  })
-  void test_error(String code) {
-    assertThrows(Parser.ParserError.class, () -> ParserHelper.parse(code));
   }
 }

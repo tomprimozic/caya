@@ -36,17 +36,17 @@ public class LexerTest {
       arguments("`xa", "ATOM(xa)"),
       arguments(".((...-++=]);;..[,=={}@!#%^//", ". ( ( ... - + + = ] ) ; ; . . [ , == { } @ ! # % ^ / /"),
       arguments("'a' '\\t' '\\'' \"f\"", "STRING(a) STRING(\t) STRING(') STRING(f)"),
-      arguments("1 < x <= 5", "INTEGER(1) < IDENT(x) <= INTEGER(5)")
+      arguments("1 < x <= 5", "INTEGER(1) < IDENT(x) <= INTEGER(5)"),
+      arguments("'", "ERROR(EOF)"),
+      arguments("`", "ERROR(`)"),
+      arguments("`(x)", "ERROR(`) ( IDENT(x) )")
     );
   }
 
   @ParameterizedTest
   @ValueSource(strings = {
     "'\\x'",
-    "'",
-    "`",
     "``",
-    "`(x)",
     "`'t'",
     "1_",
     "12__34"

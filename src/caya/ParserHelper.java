@@ -21,9 +21,6 @@ public class ParserHelper {
     } catch (IOException e) {
       throw new ParserError(e);
     }
-    if(!parser.errors.isEmpty()) {
-      throw new ParserError("parsing errors: " + parser.errors);
-    }
     if(parser.result == null) {
       throw new ParserError("failed to parse");
     }
