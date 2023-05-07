@@ -38,7 +38,7 @@ import caya.ParserHelper.Pos;
     throw new Parser.ParserError(location, msg);
   }
 
-  private void error(String msg) {
+  public void error(String msg) {
     throw new Parser.ParserError(new Parser.Location(getStartPos()), msg);
   }
 
@@ -56,6 +56,8 @@ import caya.ParserHelper.Pos;
   public Pos getEndPos() { return new Pos(yychar + (zzMarkedPos - zzStartRead)); }
 %}
 
+newline = \n | \r | \r\n
+
 identifier = [_a-zA-Z][_a-zA-Z0-9]*
 
 integer = [0-9](_?[0-9]+)*
@@ -66,7 +68,9 @@ integer = [0-9](_?[0-9]+)*
 %%
 
 <YYINITIAL> {
-  [ \t\n]                       { /* whitespace */ }
+  ^[ \t]                      { return token(NEWLINE, yytext()); }    // only at the beginning of the file
+  ({newline}[ \t]*)+          { return token(NEWLINE, yytext()); }
+  [ \t]                       { /* whitespace */ }
 
   /* symbols */
   ","                         { return token(COMMA); }

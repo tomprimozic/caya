@@ -15,6 +15,10 @@
 %define parse.error custom
 %define parse.trace
 
+%code init {
+  super(yylexer);
+}
+
 %code {
   List<Node> result = null;
 
@@ -35,10 +39,11 @@
 %token PLUS "+" MINUS "-" STAR "*" SLASH "/" PERCENT "%" CARET "^"
 %token EQ "==" NE "!=" GT ">" LT "<" GE ">=" LE "<="
 %token LPAREN "(" RPAREN ")" LBRACKET "[" RBRACKET "]" LBRACE "{" RBRACE "}"
+%token NEWLINE INDENT OUTDENT
 
 %type <Node> line_statement block_statement block_if assign tuple_expr expr arrow simple arith atom term arg
 %type <List<Node>> and_exprs or_exprs cmp
-%type <List<Node>> exprs0 exprs1 exprs2 args0 args1 statements0 statements1
+%type <List<Node>> exprs0 exprs1 exprs2 args0 args1 statements0 statements1 indented_block
 %type <Node.Seq> block
 %type <String> cmp_op
 
@@ -51,11 +56,12 @@
 start:
     statements0 YYEOF               { this.result = $1; }
 
-sep1: ";" | sep1 ";"
+sep: ";" | NEWLINE
+sep1: sep | sep1 sep
 sep0: %empty | sep1
 
 statements0:
-    sep0                            { $$ = list(); }
+    %empty                          { $$ = list(); }
   | tuple_expr                      { $$ = list($1); }
   | line_statement                  { $$ = list($1); }
   | statements1 tuple_expr          { $$ = list($1, $2); }
@@ -63,7 +69,8 @@ statements0:
   | statements1
 
 statements1:
-    tuple_expr sep1                       { $$ = list($1); }
+    sep1                                  { $$ = list(); }
+  | tuple_expr sep1                       { $$ = list($1); }
   | tuple_expr error sep1                 { $$ = list(error(@$, "tuple_expr")); }
   | line_statement sep1                   { $$ = list($1); }
   | line_statement error sep1             { $$ = list(error(@$, "line_statement")); }
@@ -102,7 +109,21 @@ block_if:
   | IF expr block ELSE block_if     { $$ = if_block(@$, $2, $3, $5); }
 
 block:
-    "{" statements0 "}"             { $$ = seq(@$, $2); }
+    lk statements0 rk                     { $$ = seq(@$, $2); }
+  | lk statements0 indented_block rk      { $$ = seq(@$, list($2, $3)); }
+  | indented_block                        { $$ = seq(@$, $1); }
+
+indented_block:
+    INDENT statements0 OUTDENT      { $$ = $2; }
+
+lk:       "{"   { enter(true); }
+rk:       "}"
+lp:       "("   { enter(false); }
+rp:       ")"
+lt:       "["   { enter(false); }
+rt:       "]"
+lb:       "{"   { enter(false); }
+rb:       "}"
 
 tuple_expr:
     expr
@@ -116,10 +137,10 @@ expr:
   | IF expr THEN expr ELSE expr     { $$ = if_expr(@$, $2, $4, $6); }
 
 arrow:
-    "(" ")" "->" expr               { $$ = arrow(@$, list(), $4); }
+    lp rp "->" expr                 { $$ = arrow(@$, list(), $4); }
   | term "->" expr                  { $$ = arrow(@$, list($1), $3); }
-  | "(" expr "," ")" "->" expr      { $$ = arrow(@$, list($2), $6); }
-  | "(" exprs2 ")" "->" expr        { $$ = arrow(@$, $2, $5); }
+  | lp expr "," rp "->" expr        { $$ = arrow(@$, list($2), $6); }
+  | lp exprs2 rp "->" expr          { $$ = arrow(@$, $2, $5); }
 
 and_exprs:
     simple AND simple               { $$ = list($1, $3); }
@@ -155,16 +176,16 @@ arith:
 
 atom:
     term
-  | "(" exprs2 ")"                            { $$ = tuple(@$, $2); }
-  | "(" line_statement ")"                    { $$ = seq(@$, list($2)); }
-  | "(" block_statement ")"                   { $$ = seq(@$, list($2)); }
-  | "(" expr ";" statements0 ")"              { $$ = seq(@$, list($2, $4)); }
-  | "(" line_statement ";" statements0 ")"    { $$ = seq(@$, list($2, $4)); }
-  | "(" block_statement ";" statements0 ")"   { $$ = seq(@$, list($2, $4)); }
+  | lp exprs2 rp                              { $$ = tuple(@$, $2); }
+  | lp line_statement rp                      { $$ = seq(@$, list($2)); }
+  | lp block_statement rp                     { $$ = seq(@$, list($2)); }
+  | lp expr ";" statements0 rp                { $$ = seq(@$, list($2, $4)); }
+  | lp line_statement ";" statements0 rp      { $$ = seq(@$, list($2, $4)); }
+  | lp block_statement ";" statements0 rp     { $$ = seq(@$, list($2, $4)); }
   | atom "." IDENT                            { $$ = attr(@$, $1, $3); }
   | atom "." "_"                              { $$ = attr(@$, $1, "_"); }
-  | atom "(" args0 ")"                        { $$ = call(@$, $1, $3); }
-  | atom "[" exprs0 "]"                       { $$ = item(@$, $1, $3); }
+  | atom lp args0 rp                          { $$ = call(@$, $1, $3); }
+  | atom lt exprs0 rt                         { $$ = item(@$, $1, $3); }
 
 term:
     IDENT                           { $$ = ident(@$, $1); }
@@ -177,11 +198,11 @@ term:
   | NONE                            { $$ = none(@$); }
   | ERROR                           { $$ = error(@$, "invalid token: " + $1); }
   | THIS                            { $$ = this_(@$); }
-  | "(" expr ")"                    { $$ = paren(@$, $2); }
-  | "[" args0 "]"                   { $$ = vector(@$, $2); }
-  | "{" args0 "}"                   { $$ = record(@$, $2); }
-  | "!" "[" exprs0 "]"              { $$ = list(@$, $3); }
-  | "!" "{" args0 "}"               { $$ = dict(@$, $3); }
+  | lp expr rp                      { $$ = paren(@$, $2); }
+  | lt args0 rt                     { $$ = vector(@$, $2); }
+  | lb args0 rb                     { $$ = record(@$, $2); }
+  | "!" lt exprs0 rt                { $$ = list(@$, $3); }
+  | "!" lb args0 rb                 { $$ = dict(@$, $3); }
 
 exprs0:
     %empty                          { $$ = list(); }

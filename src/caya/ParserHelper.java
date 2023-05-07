@@ -12,10 +12,17 @@ import caya.Node.*;
 public class ParserHelper {
   record Pos(long pos) {}
 
+  IndentationLexer lexer;
   public final ArrayList<Err> errors = new ArrayList<>();
 
+  public ParserHelper(Parser.Lexer lexer) {
+    this.lexer = (IndentationLexer) lexer;
+  }
+
+  protected void enter(boolean newlines) { lexer.enter(newlines); }
+
   public static Node parse(String code) {
-    var parser = new Parser(new Lexer(new java.io.StringReader(code)));
+    var parser = new Parser(new IndentationLexer(new Lexer(new java.io.StringReader(code))));
     try {
       parser.parse();
     } catch (IOException e) {
@@ -71,6 +78,7 @@ public class ParserHelper {
   List<Node> list(List<Node> ns, Node n) { ns.add(n); return ns; }
   List<Node> list(Node n, List<Node> ns) { ns.add(0, n); return ns; }
   List<Node> list(List<Node> ns, Node n1, Node n2) { ns.add(n1); ns.add(n2); return ns; }
+  List<Node> list(List<Node> ns1, List<Node> ns2) { ns1.addAll(ns2); return ns1; }
   List<Node> list(Node n1, Node n2, Node n3) { return new ArrayList<Node>(List.of(n1, n2, n3)); }
 
   Node error(Location loc, String error) { Err e = new Err(loc, error); errors.add(e); return e; }

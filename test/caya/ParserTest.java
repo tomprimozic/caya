@@ -1,7 +1,6 @@
 package caya;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
@@ -9,7 +8,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public class ParserTest {
 
@@ -31,6 +29,8 @@ public class ParserTest {
       arguments(";", "Seq[[]]"),
       arguments(";;", "Seq[[]]"),
       arguments("x", "Ident[x]"),
+      arguments(";x", "Ident[x]"),
+      arguments(";;x;", "Ident[x]"),
       arguments("x;", "Ident[x]"),
       arguments("x;;", "Ident[x]"),
       arguments("none", "None[]"),
@@ -56,6 +56,8 @@ public class ParserTest {
       arguments("4; z = true; 'm'", "Seq[[Int[4], Assign[Ident[z], Bool[true]], Str[m]]]"),
       arguments("f(x) = y", "Assign[Call[Ident[f], [Ident[x]]], Ident[y]]"),
       arguments("x[0] = 1", "Assign[Item[Ident[x], [Int[0]]], Int[1]]"),
+      arguments("1 + 2", "Binary[Ident[+], Int[1], Int[2]]"),
+      arguments("1 + 2 + 3", "Binary[Ident[+], Binary[Ident[+], Int[1], Int[2]], Int[3]]"),
       arguments("f(x) = x + 1", "Assign[Call[Ident[f], [Ident[x]]], Binary[Ident[+], Ident[x], Int[1]]]"),
       arguments("h(x) = if x then 3 else -7", "Assign[Call[Ident[h], [Ident[x]]], IfElse[Ident[x], Int[3], Unary[Ident[-], Int[7]]]]"),
       arguments("-1 * 2", "Unary[Ident[-], Binary[Ident[*], Int[1], Int[2]]]"),
@@ -155,6 +157,69 @@ public class ParserTest {
       arguments("f(1, 2; 3, 4)", "Call[Ident[f], [Err[arg], Int[4]]]"),
       arguments("f(1; 2, 3; 4)", "Call[Ident[f], [Err[arg]]]"),
       arguments("f(1; 2)", "Call[Ident[f], [Err[arg]]]")
+    );
+  }
+
+  @ParameterizedTest(name = "\"{0}\"")
+  @MethodSource("indentation")
+  void test_indentation(String code, Object expected) {
+    Object result = ERROR;
+    try {
+      result = Node.show(Parser.parse(code));
+    } catch (Parser.ParserError e) {}
+    assertEquals(expected, result, "\"" + code + "\"");
+  }
+
+  private static Stream<Arguments> indentation() {
+    return Stream.of(
+      arguments("1, 2,    \n"
+              + "3, 4     \n",
+              "Seq[[Tuple[[Int[1], Int[2]]], Tuple[[Int[3], Int[4]]]]]"),
+      arguments("1, 2,    \n"
+              + "  3, 4   \n",
+              "Err[statements1]"),
+      arguments("  1, 2,    \n"
+              + "3, 4       \n",
+              "Seq[[Err[statements1], Tuple[[Int[3], Int[4]]]]]"),
+      arguments("  1    \n"
+              + "2;     \n"
+              + "3;     \n",
+              "Seq[[Err[statements1], Int[2], Int[3]]]"),
+      arguments("1, (2,     \n"
+              + "  3), 4    \n",
+              "Tuple[[Int[1], Tuple[[Int[2], Int[3]]], Int[4]]]"),
+      arguments("class A    \n"
+              + "  test     \n"
+              + "  if X     \n"
+              + "    x      \n"
+              + "    a      \n"
+              + "  b        \n"
+              + "c          \n",
+              "Seq[[Class[Ident[A], Seq[[Ident[test], If[Ident[X], Seq[[Ident[x], Ident[a]]]], Ident[b]]]], Ident[c]]]"),
+      arguments("class A              \n"
+              + "             test    \n"
+              + "             if X    \n"
+              + "              x      \n"
+              + "              a      \n"
+              + "             b       \n"
+              + "c                    \n",
+              "Seq[[Class[Ident[A], Seq[[Ident[test], If[Ident[X], Seq[[Ident[x], Ident[a]]]], Ident[b]]]], Ident[c]]]"),
+      arguments("if a                                     \n"
+              + "             if b                        \n"
+              + "                        1 + (if c {      \n"
+              + "                                 x       \n"
+              + "                                 y       \n"
+              + "                        }; b) + 3        \n"
+              + "                        q                \n"
+              + "z                                        \n",
+              "Seq[[If[Ident[a], Seq[[If[Ident[b], Seq[[Binary[Ident[+], Binary[Ident[+], Int[1], Seq[[If[Ident[c], Seq[[Ident[x], Ident[y]]]], Ident[b]]]], Int[3]], Ident[q]]]]]]], Ident[z]]]"),
+      arguments("if a   \n"
+              + "  x[   \n"
+              + " 0     \n"
+              + "]      \n"
+              + "  y    \n"
+              + "z      \n",
+              "Seq[[If[Ident[a], Seq[[Item[Ident[x], [Int[0]]], Ident[y]]]], Ident[z]]]")
     );
   }
 }
