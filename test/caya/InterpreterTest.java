@@ -112,7 +112,10 @@ public class InterpreterTest {
       arguments("fn take(i,xs) { it = xs.iter(); r = {iter = () -> r, next = () -> ( if i > 0 { i = i - 1; it.next() } else {iter.stop} ) };  r} ' '.join(take(3, [1,2,3,4,5]))", "1 2 3"),
       arguments("var l = []; for i in [1, 2, 3] { l = l.push(i); } l", "[3, 2, 1]"),
       arguments("for i in [] {}", "none"),
-      arguments("a = 0; for i in [] { a = a + i; } a", "0")
+      arguments("a = 0; for i in [] { a = a + i; } a", "0"),
+      arguments("list(1,6)", "![1, 6]"),
+      arguments("x = ![5, 2, 9]; [list.last(x), list.size(x)]", "[9, 3]"),
+      arguments("x = ![5, 2, 0]; list.pop(x); list.append(x, 3, 8); x", "![2, 0, 3, 8]")
     );
   }
 
@@ -134,6 +137,7 @@ public class InterpreterTest {
     "a={}; {a=1, ...a, a=1}",
     "f(x, y=x+1, z=0) = x + y + z; f(z=2)",
     "f(x, y=x+1, z=0) = x + y + z; f(z=2, y=5)",
+    "list.size([1,2,3])",
   })
   void test_error(String code) {
     assertThrows(Interpreter.InterpreterError.class, () -> Interpreter.eval(Parser.parse(code)));

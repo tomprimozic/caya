@@ -5,7 +5,11 @@ import com.dynatrace.hash4j.hashing.Hashing;
 
 
 public final class Runtime {
-  public static abstract class Value {
+  public interface Callable {
+    public Value call(Value[] args, Map<String, Value> named_args);
+  }
+
+  public static abstract class Value implements Callable {
     public Value call(Value[] args, Map<String, Value> named_args) { throw new Interpreter.InterpreterError("object of type `" + this.getClass() + "` cannot be called"); }
     public Value get_attr(String attr) { throw new Interpreter.AttrError(this.getClass(), attr); }
     public void set_attr(String attr, Value value) { throw new Interpreter.AttrError(this.getClass(), attr); }

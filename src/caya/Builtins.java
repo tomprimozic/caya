@@ -80,7 +80,8 @@ public final class Builtins {
 
   public static Value null_to_none(Value value) { return value == null ? Builtins.NONE : value; }
 
-  public static interface Descriptor {
+  sealed public static interface Descriptor {
+    public java.lang.reflect.Method m();
     public Value call(Value obj, Value[] args);
     public Value get(Value obj);
   }
@@ -96,11 +97,7 @@ public final class Builtins {
 
   record Method(java.lang.reflect.Method m) implements Descriptor {
     public Value get(Value obj) { return new BoundMethod(obj, this); }
-    public Value call(Value obj, Value[] args) {
-      try {
-        return null_to_none((Value) m.invoke(obj, JVM.prepare_arguments(m, args)));
-      } catch (Throwable e) { throw new RuntimeException(e); }
-    }
+    public Value call(Value obj, Value[] args) { return invoke(m, obj, args); }
   }
 
   private static java.lang.reflect.Method find_unique(Class<?> cls, String name) {
@@ -125,6 +122,15 @@ public final class Builtins {
     } catch (SecurityException | NoSuchMethodException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static Value invoke(java.lang.reflect.Method m, Value obj, Value[] args) {
+    if(obj != null && m.getDeclaringClass() != obj.getClass()) {
+      throw new Interpreter.InterpreterError("wrong type");
+    }
+    try {
+      return null_to_none((Value) m.invoke(obj, JVM.prepare_arguments(m, args)));
+    } catch (Throwable e) { throw new RuntimeException(e); }
   }
 
   public static abstract class BuiltinValue extends Value {
@@ -164,15 +170,29 @@ public final class Builtins {
     @Override public boolean equals(Object other) { return other instanceof BoundMethod m && m.obj.equals(this.obj) && m.method.equals(this.method); }
   }
 
+  public static final class UnboundMethod extends Value {
+    public final Descriptor descriptor;
+    public UnboundMethod(Descriptor descriptor) { this.descriptor = descriptor; }
+    @Override public Value call(Value[] args, Map<String, Value> named_args) {
+      if(args.length == 0) { throw new Interpreter.Control.Exception(new Str("expected at least 1 argument")); }
+      if(named_args != null && !named_args.isEmpty()) {
+        throw new Interpreter.InterpreterError("builtin method `" + descriptor.m().getName() + "` cannot be called with named arguments");
+      }
+      return invoke(descriptor.m(), args[0], Arrays.copyOfRange(args, 1, args.length));
+    }
+    @Override public int hashCode() { return Runtime.combine_hash(UnboundMethod.class, descriptor); }
+    @Override public boolean equals(Object other) { return other instanceof UnboundMethod m && m.descriptor.equals(this.descriptor); }
+  }
+
   public static final class Function extends Value {
-    public final Method method;
-    public Function(Method method) { this.method = method; }
-    public Function(String fn) { this(new Method(find_unique(Builtins.class, fn))); }
+    public final java.lang.reflect.Method method;
+    public Function(java.lang.reflect.Method method) { this.method = method; }
+    public Function(String fn) { this(find_unique(Builtins.class, fn)); }
     @Override public Value call(Value[] args, Map<String, Value> named_args) {
       if(named_args != null && !named_args.isEmpty()) {
-        throw new Interpreter.InterpreterError("builtin function `" + method.m().getName() + "` cannot be called with named arguments");
+        throw new Interpreter.InterpreterError("builtin function `" + method.getName() + "` cannot be called with named arguments");
       }
-      return method.call(null, args);
+      return invoke(method, null, args);
     }
     @Override public int hashCode() { return method.hashCode(); }
     @Override public boolean equals(Object other) { return other instanceof Function f && f.method.equals(this.method); }
@@ -252,6 +272,13 @@ public final class Builtins {
       new String[] {"size", "last"},
       new String[] {"push", "append", "pop", "shift", "iter"}
     );
+    public static List create(Value[] args, Map<String, Value> named_args) {
+      if(named_args != null && !named_args.isEmpty()) {
+        throw new Interpreter.InterpreterError("list(...) cannot be called with named arguments");
+      }
+      return new List(args);
+    }
+    public static final Type TYPE = new Type("list", List::create, new HashMap<>(), ATTRS);
 
     @Override public int hashCode() { throw new Interpreter.InterpreterError("mutable list is not hashable"); }
     @Override public boolean equals(Object other) { return other instanceof List l && l.data.equals(this.data); }
@@ -328,5 +355,33 @@ public final class Builtins {
       new String[] {},
       new String[] {"next"}
     );
+  }
+
+  public final static class Type extends Value {
+    // each concrete type is different, similar to a module
+    public final String name;
+    public final Runtime.Callable constructor;
+    public final HashMap<String, Value> static_attrs;
+    public final HashMap<String, Descriptor> obj_attrs;
+    public Type(String name, Runtime.Callable constructor, HashMap<String, Value> static_attrs, HashMap<String, Descriptor> obj_attrs) {
+      this.name = name; this.constructor = constructor; this.static_attrs = static_attrs; this.obj_attrs = obj_attrs;
+
+      var attrs = new java.util.HashSet<>(static_attrs.keySet());
+      attrs.retainAll(obj_attrs.keySet());
+      assert attrs.isEmpty();
+    }
+
+    public Value get_attr(String attr) {
+      var value = static_attrs.get(attr);
+      if(value != null) { return value; }
+      var desc = obj_attrs.get(attr);
+      if(desc == null) { throw new Interpreter.AttrError(getClass(), attr); }
+      value = new UnboundMethod(desc);
+      return value;
+    }
+
+    public String toString() { return "type " + name; }
+
+    public Value call(Value[] args, Map<String, Value> named_args) { return constructor.call(args, named_args); }
   }
 }

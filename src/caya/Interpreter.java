@@ -112,6 +112,7 @@ public final class Interpreter {
       "cls", new Builtins.Function("jvm_cls")
     ))));
     root.assign("load", new Builtins.Function("load"));
+    root.assign("list", Builtins.List.TYPE);
   }
 
   public static final class Scope {
