@@ -6,13 +6,19 @@
 - not aiming for performance _per se_, but choosing constructs and patterns that _can be_ optimised
 - interactive, optionally statically typed, functional & imperative, simple & predictable syntax & semantics
 
+#### current priorities
+
+1. implement enough features to stop using host language for library implementation
+2. bytecode interpreter (and overall refactor)
+3. performance improvements
+
 ## Implementation
 
 We use Java / JVM as the host platform.
 
 Java has improved a lot in recent years - records, pattern matching, `var` type inference - so it's not terrible to use any more. In addition, `bison` (parser generator) can generate Java parsers.
 
-JVM is one of the few runtimes with sensible memory model (no _undefined behaviour_ - the other being _OCaml_) and has great support for concurrency (threading) and memory management (garbage collection). It generates decently fast code and enables interesting optimisation strategies in the future (directly generating JVM bytecode, Truffle/Graal optimised interpreters). Finally, it makes available a plethora of third-party libraries.
+JVM is one of the few runtimes with a sensible memory model (no _undefined behaviour_ - the other being _OCaml_) and has great support for concurrency (threading) and memory management (garbage collection). It generates decently fast code and enables interesting optimisation strategies in the future (directly generating JVM bytecode, Truffle/Graal optimised interpreters). Finally, it makes available a plethora of third-party libraries.
 
 ## Progress
 
@@ -40,17 +46,20 @@ JVM is one of the few runtimes with sensible memory model (no _undefined behavio
 - [x] tuples, records
 - [x] recursive functions
 - [x] Java interop
-- [ ] underscore `_`
+- [ ] underscore `_` (implicit functions: `_.x`, `_ * 2`)
 - [ ] static modules
 - [x] comparison operators
 - [x] immutable data structures (vector, index)
 - [x] mutable data structures (list, dict)
 - [ ] array (multi-dimensional, numeric, fixed size, mutable)
 - [x] immutable & mutable literals
+- [ ] add tests for error messages
 - [ ] function overloading
 - [ ] custom operators
+- [ ] `let` and `var` declarations
 - [ ] destructuring assignment
 - [ ] pattern matching
+- [ ] "parent scope" declarations (function-level or toplevel)
 - [ ] spread arguments
 - [ ] list comprehensions
 - [x] atoms
