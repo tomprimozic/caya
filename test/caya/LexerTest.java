@@ -39,7 +39,8 @@ public class LexerTest {
       arguments("1 < x <= 5", "INTEGER(1) < IDENT(x) <= INTEGER(5)"),
       arguments("'", "ERROR(EOF)"),
       arguments("`", "ERROR(`)"),
-      arguments("`(x)", "ERROR(`) ( IDENT(x) )")
+      arguments("`(x)", "ERROR(`) ( IDENT(x) )"),
+      arguments("true type record break continue return fn fun func function module class struct if then else this super for in while try catch throw and or not", "TRUE TYPE RECORD BREAK CONTINUE RETURN FUNC FUNC FUNC FUNC MODULE CLASS STRUCT IF THEN ELSE THIS SUPER FOR IN WHILE TRY CATCH THROW AND OR NOT")
     );
   }
 
