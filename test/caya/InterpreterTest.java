@@ -115,7 +115,9 @@ public class InterpreterTest {
       arguments("a = 0; for i in [] { a = a + i; } a", "0"),
       arguments("list(1,6)", "![1, 6]"),
       arguments("x = ![5, 2, 9]; [list.last(x), list.size(x)]", "[9, 3]"),
-      arguments("x = ![5, 2, 0]; list.pop(x); list.append(x, 3, 8); x", "![2, 0, 3, 8]")
+      arguments("x = ![5, 2, 0]; list.pop(x); list.append(x, 3, 8); x", "![2, 0, 3, 8]"),
+      arguments("[].push(1,5,2,3)", "[3, 2, 5, 1]"),
+      arguments("vector.push(vector.empty, 1,5,2,3)", "[3, 2, 5, 1]")
     );
   }
 

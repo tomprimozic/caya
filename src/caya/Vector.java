@@ -3,6 +3,7 @@ package caya;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import caya.Builtins.BuiltinValue;
@@ -37,6 +38,15 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
     new String[] {"size", "first", "last"},
     new String[] {"push", "append", "update", "pop", "shift", "iter"}
   );
+
+  public static Vector<? extends Value> create(Value[] args, Map<String, Value> named_args) {
+    if(named_args != null && !named_args.isEmpty()) {
+      throw new Interpreter.InterpreterError("vector(...) cannot be called with named arguments");
+    }
+    return Vector.make(args);
+  }
+
+  public static final Builtins.Type TYPE = new Builtins.Type("vector", Vector::create, new HashMap<>(Map.of("empty", empty)), ATTRS);
 
   // TODO: can these be optimised?
   public Value first() { return get(0); }
@@ -157,6 +167,7 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
   @SuppressWarnings("unchecked")
   public Builtins.Iterator iter() { return new Builtins.Iterator((Iterator<Value>) this.iterator()); }
 
+  public static <E extends Value> Vector<E> make(E[] items) { return make(java.util.Arrays.stream(items)); }
   public static <E extends Value> Vector<E> make(Stream<E> items) { return make(items.iterator()); }
   public static <E extends Value> Vector<E> make(Iterable<E> items) { return make(items.iterator()); }
 
