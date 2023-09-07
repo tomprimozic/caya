@@ -306,22 +306,11 @@ public final class Interpreter {
         case Node.Item(var __, var value, var items) when items.size() == 1 -> eval(value).get_item(eval(items.get(0)));
         case Node.Cmp(var __, var items) -> eval_cmp(items) ? TRUE : FALSE;
         case Node.While(var __, var cond, var body) -> {
-          while(to_bool(eval(cond))) {
-            try { eval_seq(body.exprs(), true); }
-            catch(Control.Break e) { break; }
-            catch(Control.Continue e) { continue; }
-          }
+          eval_while(cond, body);
           yield NONE;
         }
         case Node.For(var __, Node.Ident(var ___, var item), var items, var body) -> {
-          var it = Runtime.iter(eval(items));
-          while(it.hasNext()) {
-            var scope = new Scope(this, this_obj, true, in_fn);
-            scope.declare(item, it.next());
-            try { scope.eval(body); }
-            catch(Control.Break e) { break; }
-            catch(Control.Continue e) { continue; }
-          }
+          eval_for(item, items, body);
           yield NONE;
         }
         case Node.Continue(var __) -> {
@@ -334,12 +323,7 @@ public final class Interpreter {
         }
         case Node.Throw(var __, var exception) -> { throw new Control.Exception(eval(exception)); }
         case Node.Try(var __, var try_block, Node.Ident(var ___, var exception), var catch_block) -> {
-          try { yield eval(try_block); }
-          catch(Control.Exception e) {
-            var scope = new Scope(this, this_obj, in_loop, in_fn);
-            scope.declare(exception, e.value);
-            yield scope.eval(catch_block);
-          }
+          yield eval_try(try_block, exception, catch_block);
         }
         case Node.This(var __) -> {
           if(this_obj == null) { throw new InterpreterError("invalid `this` outside of class"); }
@@ -447,6 +431,34 @@ public final class Interpreter {
         left = right;
       }
       return true;
+    }
+
+    private void eval_while(Node cond, Node.Seq body) {
+      while(to_bool(eval(cond))) {
+        try { eval_seq(body.exprs(), true); }
+        catch(Control.Break e) { break; }
+        catch(Control.Continue e) { continue; }
+      }
+    }
+
+    private void eval_for(String item, Node items, Node.Seq body) {
+      var it = Runtime.iter(eval(items));
+      while(it.hasNext()) {
+        var scope = new Scope(this, this_obj, true, in_fn);
+        scope.declare(item, it.next());
+        try { scope.eval(body); }
+        catch(Control.Break e) { break; }
+        catch(Control.Continue e) { continue; }
+      }
+    }
+
+    private Value eval_try(Node.Seq try_block, String exception, Node.Seq catch_block) {
+      try { return eval(try_block); }
+      catch(Control.Exception e) {
+        var scope = new Scope(this, this_obj, in_loop, in_fn);
+        scope.declare(exception, e.value);
+        return scope.eval(catch_block);
+      }
     }
   }
 
