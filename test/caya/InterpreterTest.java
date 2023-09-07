@@ -117,7 +117,11 @@ public class InterpreterTest {
       arguments("x = ![5, 2, 9]; [list.last(x), list.size(x)]", "[9, 3]"),
       arguments("x = ![5, 2, 0]; list.pop(x); list.append(x, 3, 8); x", "![2, 0, 3, 8]"),
       arguments("[].push(1,5,2,3)", "[3, 2, 5, 1]"),
-      arguments("vector.push(vector.empty, 1,5,2,3)", "[3, 2, 5, 1]")
+      arguments("vector.push(vector.empty, 1,5,2,3)", "[3, 2, 5, 1]"),
+      arguments("int", "type int"),
+      arguments("int(5)", "5"),
+      arguments("int('-5')", "-5"),
+      arguments("i = ['a' = 1, 5 = 2, false = 4]; [i.size, i.get('a'), index.size(i), index.get(i, false)]", "[3, 1, 3, 4]")
     );
   }
 

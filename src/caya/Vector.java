@@ -47,6 +47,7 @@ public final class Vector<E extends Value> extends BuiltinValue implements Itera
   }
 
   public static final Builtins.Type TYPE = new Builtins.Type("vector", Vector::create, new HashMap<>(Map.of("empty", empty)), ATTRS);
+  @Override public Builtins.Type type() { return TYPE; }
 
   // TODO: can these be optimised?
   public Value first() { return get(0); }

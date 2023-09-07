@@ -114,6 +114,8 @@ public final class Interpreter {
     root.assign("load", new Builtins.Function("load"));
     root.assign("list", Builtins.List.TYPE);
     root.assign("vector", Vector.TYPE);
+    root.assign("int", Builtins.Int.TYPE);
+    root.assign("index", Builtins.Index.TYPE);
   }
 
   public static final class Scope {

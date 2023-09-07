@@ -55,22 +55,44 @@ public final class Builtins {
     @Override public String toString() { return value.toString(); }
     @Override public int hashCode() { return value.hashCode(); }
     @Override public boolean equals(Object other) { return other instanceof Int i && i.value.equals(this.value); }
+    public static Int create(Value[] args, Map<String, Value> named_args) {
+      if(named_args != null && !named_args.isEmpty()) {
+        throw new Interpreter.InterpreterError("int(...) cannot be called with named arguments");
+      }
+      if(args.length != 1) {
+        throw new Interpreter.InterpreterError("int(...) accepts exactly one argument");
+      }
+      return switch(args[0]) {
+        case Int i -> i;
+        case Str s -> new Int(new BigInteger(s.value));
+        default -> throw new Interpreter.InterpreterError("unexpected type: " + args[0].getClass());
+      };
+    }
+    public static final Type TYPE = new Type("int", Int::create, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Bool extends Value {
     public final boolean value;
     private Bool(boolean value) { this.value = value; }
     @Override public String toString() { return value ? "true" : "false"; }
+
+    public static final Type TYPE = new Type("bool", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class None extends Value {
     private None() {}
     @Override public String toString() { return "none"; }
+    public static final Type TYPE = new Type("none", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Stop extends Value {
     private Stop() {}
     @Override public String toString() { return "iter.stop"; }
+    public static final Type TYPE = new Type("iter.stop", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public final static None NONE = new None();
@@ -168,6 +190,9 @@ public final class Builtins {
     }
     @Override public int hashCode() { return Runtime.combine_hash(BoundMethod.class, obj, method); }
     @Override public boolean equals(Object other) { return other instanceof BoundMethod m && m.obj.equals(this.obj) && m.method.equals(this.method); }
+
+    public static final Type TYPE = new Type("builtins.bound_method", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public static final class UnboundMethod extends Value {
@@ -182,6 +207,9 @@ public final class Builtins {
     }
     @Override public int hashCode() { return Runtime.combine_hash(UnboundMethod.class, descriptor); }
     @Override public boolean equals(Object other) { return other instanceof UnboundMethod m && m.descriptor.equals(this.descriptor); }
+
+    public static final Type TYPE = new Type("builtins.unbound_method", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public static final class Function extends Value {
@@ -196,6 +224,9 @@ public final class Builtins {
     }
     @Override public int hashCode() { return method.hashCode(); }
     @Override public boolean equals(Object other) { return other instanceof Function f && f.method.equals(this.method); }
+
+    public static final Type TYPE = new Type("builtins.function", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Str extends BuiltinValue {
@@ -228,6 +259,9 @@ public final class Builtins {
 
     @Override public int hashCode() { return value.hashCode(); }
     @Override public boolean equals(Object other) { return other instanceof Str s && s.value.equals(this.value); }
+
+    public static final Type TYPE = new Type("str", null, new HashMap<>(), ATTRS);
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Atom extends BuiltinValue {
@@ -242,6 +276,9 @@ public final class Builtins {
       new String[] {"name"},
       new String[] {}
     );
+
+    public static final Type TYPE = new Type("atom", null, new HashMap<>(), ATTRS);
+    @Override public Type type() { return TYPE; }
 
     @Override public int hashCode() { return Runtime.combine_hash(Atom.class, name); }
     @Override public boolean equals(Object other) { return other instanceof Atom a && a.name.equals(this.name); }
@@ -279,6 +316,7 @@ public final class Builtins {
       return new List(args);
     }
     public static final Type TYPE = new Type("list", List::create, new HashMap<>(), ATTRS);
+    @Override public Type type() { return TYPE; }
 
     @Override public int hashCode() { throw new Interpreter.InterpreterError("mutable list is not hashable"); }
     @Override public boolean equals(Object other) { return other instanceof List l && l.data.equals(this.data); }
@@ -304,6 +342,9 @@ public final class Builtins {
 
     @Override public int hashCode() { throw new Interpreter.InterpreterError("mutable dict is not hashable"); }
     @Override public boolean equals(Object other) { return other instanceof Dict d && d.data.equals(this.data); }
+
+    public static final Type TYPE = new Type("dict", null, new HashMap<>(), ATTRS);
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Index extends BuiltinValue {
@@ -326,6 +367,9 @@ public final class Builtins {
 
     @Override public int hashCode() { return Runtime.hash_mapping(JavaConverters.asJava(this.data).entrySet()); }
     @Override public boolean equals(Object other) { return other instanceof Index d && d.data.equals(this.data); }
+
+    public static final Type TYPE = new Type("index", null, new HashMap<>(), ATTRS);
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Module extends Value {
@@ -342,6 +386,8 @@ public final class Builtins {
     }
 
     public String toString() { return "module " + name; }
+    public static final Type TYPE = new Type("module", null, new HashMap<>(), new HashMap<>());
+    @Override public Type type() { return TYPE; }
   }
 
   public final static class Iterator extends BuiltinValue {
@@ -355,9 +401,12 @@ public final class Builtins {
       new String[] {},
       new String[] {"next"}
     );
+
+    public static final Type TYPE = new Type("iterator", null, new HashMap<>(), ATTRS);
+    @Override public Type type() { return TYPE; }
   }
 
-  public final static class Type extends Value {
+  public final static class Type extends Runtime.Type {
     // each concrete type is different, similar to a module
     public final String name;
     public final Runtime.Callable constructor;
@@ -382,6 +431,11 @@ public final class Builtins {
 
     public String toString() { return "type " + name; }
 
-    public Value call(Value[] args, Map<String, Value> named_args) { return constructor.call(args, named_args); }
+    public Value call(Value[] args, Map<String, Value> named_args) {
+      if(constructor == null) {
+        throw new Interpreter.InterpreterError("cannot create a new instance of type " + name);
+      }
+      return constructor.call(args, named_args);
+    }
   }
 }

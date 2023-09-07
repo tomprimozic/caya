@@ -6,17 +6,19 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import caya.Builtins.*;
 import caya.Runtime.Value;
+import caya.Runtime.Type;
 
 public class JVM {
-  public static final class Cls extends Value {
+  public static final class Cls extends Type {
     public final Class<?> cls;
     public Cls(Class<?> cls) { this.cls = cls; }
 
-    @Override public String toString() { return cls.toString(); }
+    @Override public String toString() { return "JVM class " + cls.toString(); }
     @Override public int hashCode() { return cls.hashCode(); }
     @Override public boolean equals(Object other) { return cls.equals(other); }
 
@@ -62,6 +64,7 @@ public class JVM {
 
   public static final class Obj extends Value {
     public final Object obj;
+    public Cls cls;
     public Obj(Object obj) { this.obj = obj; }
 
     @Override public String toString() {
@@ -73,6 +76,7 @@ public class JVM {
     @Override public boolean equals(Object other) { return obj.equals(other); }
 
     @Override public final Value get_attr(String attr) { return new BoundMethod(obj, attr); }
+    @Override public Cls type() { if(cls == null) { cls = new Cls(obj.getClass()); }; return cls; }
   }
 
   public static final class BoundMethod extends Value {
@@ -91,6 +95,8 @@ public class JVM {
     }
     @Override public int hashCode() { return Runtime.combine_hash(BoundMethod.class, obj, method_name); }
     @Override public boolean equals(Object other) { return other instanceof BoundMethod m && m.obj.equals(this.obj) && m.method_name.equals(this.method_name); }
+    public static final Builtins.Type TYPE = new Builtins.Type("builtins.jvm_bound_method", null, new HashMap<>(), new HashMap<>());
+    @Override public Builtins.Type type() { return TYPE; }
   }
 
   public static boolean verify_module_access(java.lang.Module currentModule, Class<?> memberClass) {

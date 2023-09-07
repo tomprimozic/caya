@@ -9,7 +9,7 @@
 #### current priorities
 
 1. implement enough features to stop using host language for library implementation
-2. bytecode interpreter (and overall refactor)
+2. bytecode interpreter (and overall refactor, e.g. a single immutable `HashMap.empty` object)
 3. performance improvements
 
 ## Implementation
@@ -27,10 +27,10 @@ JVM is one of the few runtimes with a sensible memory model (no _undefined behav
 - [x] hashing, dict
 - [x] iterators
 - [x] modules
-- [ ] first-class types, `typeof`
+- [ ] first-class types, `typeof`, `instanceof` (`:?`), `cast` (`:`)
 - [ ] inheritance (single)
 - [ ] equality, comparisons
-- [ ] `has_attr`, `list_attrs`, _runtime services_ like `call_function`, `invoke_method`, `typeof`, `int_to_str`, `plus_int32`, `get_field`, `set_item`, ...
+- [ ] `has_attr`, `list_attrs`, _runtime services_ like `call_function`, `invoke_method`, `typeof`, `int_to_str`, `plus_int32`, `get_field`, `set_item`, `eq`, `cmp`, ...
 - [x] classes
 - [x] block if
 - [x] `while` loop, `for` loop

@@ -43,4 +43,7 @@ public final class Record extends Value {
 
   @Override public boolean equals(Object other) { return other instanceof Record r && r.fields.equals(this.fields); }
   @Override public int hashCode() { return Runtime.combine_hash(Record.class.hashCode(), Runtime.hash_mapping(JavaConverters.asJava(fields).entrySet())); }
+
+  public static final Builtins.Type TYPE = new Builtins.Type("record", null, new java.util.HashMap<>(), new java.util.HashMap<>());
+  @Override public Builtins.Type type() { return TYPE; }
 }

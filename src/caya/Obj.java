@@ -5,6 +5,7 @@ import java.util.Map;
 
 import caya.Runtime.Param;
 import caya.Runtime.Value;
+import caya.Runtime.Type;
 
 public final class Obj extends Value {
   public final Cls cls;
@@ -13,8 +14,9 @@ public final class Obj extends Value {
 
   @Override public Value get_attr(String attr) { return cls.get_obj_attr(this, attr); }
   @Override public void set_attr(String attr, Value value) { cls.set_obj_attr(this, attr, value); }
+  @Override public Cls type() { return cls; }
 
-  public static final class Cls extends Value {
+  public static final class Cls extends Type {
     public final String name;
     public final int num_fields;
     public final HashMap<String, Descriptor> attrs;
@@ -26,6 +28,8 @@ public final class Obj extends Value {
       this.attrs = attrs;
       this.constructor = constructor;
     }
+
+    public String toString() { return "class " + name; }
 
     @Override
     public Value call(Value[] args, Map<String, Value> named_args) {
@@ -77,5 +81,7 @@ public final class Obj extends Value {
     public final Method method;
     public BoundMethod(Obj obj, Method method) { this.obj = obj; this.method = method; }
     @Override public Value call(Value[] args, Map<String, Value> named_args) { return method.call(obj, args, named_args); }
+    public static final Builtins.Type TYPE = new Builtins.Type("builtins.bound_method", null, new HashMap<>(), new HashMap<>());
+    @Override public Builtins.Type type() { return TYPE; }
   }
 }
