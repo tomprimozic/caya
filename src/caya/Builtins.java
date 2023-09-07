@@ -45,6 +45,10 @@ public final class Builtins {
     }
   }
 
+  public static final Runtime.Type typeof(Value v) {
+    return v.type();
+  }
+
   public static JVM.Cls jvm_cls(Str class_name) throws ClassNotFoundException { return new JVM.Cls(JVM.class.getClassLoader().loadClass(class_name.value)); }
 
   public final static class Int extends Value {

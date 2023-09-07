@@ -116,6 +116,7 @@ public final class Interpreter {
     root.assign("vector", Vector.TYPE);
     root.assign("int", Builtins.Int.TYPE);
     root.assign("index", Builtins.Index.TYPE);
+    root.assign("typeof", new Builtins.Function("typeof"));
   }
 
   public static final class Scope {
