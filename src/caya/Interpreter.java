@@ -115,8 +115,10 @@ public final class Interpreter {
     root.assign("list", Builtins.List.TYPE);
     root.assign("vector", Vector.TYPE);
     root.assign("int", Builtins.Int.TYPE);
+    root.assign("str", Builtins.Str.TYPE);
     root.assign("index", Builtins.Index.TYPE);
     root.assign("typeof", new Builtins.Function("typeof"));
+    root.assign("isinstance", new Builtins.Function("isinstance"));
   }
 
   public static final class Scope {

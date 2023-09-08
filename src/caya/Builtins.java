@@ -49,6 +49,10 @@ public final class Builtins {
     return v.type();
   }
 
+  public static final Bool isinstance(Value v, Type t) {
+    return v.type() == t ? TRUE : FALSE;  // TODO: handle inheritance
+  }
+
   public static JVM.Cls jvm_cls(Str class_name) throws ClassNotFoundException { return new JVM.Cls(JVM.class.getClassLoader().loadClass(class_name.value)); }
 
   public final static class Int extends Value {

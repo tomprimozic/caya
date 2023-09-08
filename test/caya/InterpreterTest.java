@@ -123,7 +123,8 @@ public class InterpreterTest {
       arguments("int('-5')", "-5"),
       arguments("i = ['a' = 1, 5 = 2, false = 4]; [i.size, i.get('a'), index.size(i), index.get(i, false)]", "[3, 1, 3, 4]"),
       arguments("typeof(false)", "type bool"),
-      arguments("typeof(typeof(false))", "type type")
+      arguments("typeof(typeof(false))", "type type"),
+      arguments("[isinstance(1, int), isinstance(1, str), isinstance('s', str)]", "[true, false, true]")
     );
   }
 
