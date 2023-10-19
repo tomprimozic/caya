@@ -27,7 +27,7 @@ public final class Builtins {
     var code = java.nio.file.Files.readString(p, java.nio.charset.StandardCharsets.UTF_8);
     var node = ParserHelper.parse(code);
     var exprs = switch(node) {
-      case Node.Seq(var __, var nodes) -> nodes;
+      case Node.Seq(_, var nodes) -> nodes;
       default -> Arrays.asList(node);
     };
     var scope = new Interpreter.Scope(Interpreter.root, null, false, false);
@@ -116,18 +116,18 @@ public final class Builtins {
     public Value get(Value obj);
   }
 
-  record Property(java.lang.reflect.Method m) implements Descriptor {
-    public Value get(Value obj) {
+  public record Property(java.lang.reflect.Method m) implements Descriptor {
+    @Override public Value get(Value obj) {
       try {
         return null_to_none((Value) m.invoke(obj));
       } catch (Throwable e) { throw new RuntimeException(e); }
     }
-    public Value call(Value obj, Value[] args) { return get(obj).call(args, null); }
+    @Override public Value call(Value obj, Value[] args) { return get(obj).call(args, null); }
   }
 
-  record Method(java.lang.reflect.Method m) implements Descriptor {
-    public Value get(Value obj) { return new BoundMethod(obj, this); }
-    public Value call(Value obj, Value[] args) { return invoke(m, obj, args); }
+  public record Method(java.lang.reflect.Method m) implements Descriptor {
+    @Override public Value get(Value obj) { return new BoundMethod(obj, this); }
+    @Override public Value call(Value obj, Value[] args) { return invoke(m, obj, args); }
   }
 
   private static java.lang.reflect.Method find_unique(Class<?> cls, String name) {
@@ -259,7 +259,7 @@ public final class Builtins {
       return new Str(result.toString());
     }
 
-    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    @Override public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Str.class,
       new String[] {"size"},
       new String[] {"join"}
@@ -279,7 +279,7 @@ public final class Builtins {
 
     public Str name() { return new Str(name); }
 
-    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    @Override public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Atom.class,
       new String[] {"name"},
       new String[] {}
@@ -312,7 +312,7 @@ public final class Builtins {
     @Override public Value get_item(Value item) { return this.data.apply(Interpreter.to_int32(item)); }
     @Override public void set_item(Value item, Value value) { data.update(Interpreter.to_int32(item), value); }
 
-    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    @Override public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
       new String[] {"size", "last"},
       new String[] {"push", "append", "pop", "shift", "iter"}
@@ -343,7 +343,7 @@ public final class Builtins {
     @Override public Value get_item(Value key) { return data.get(key); }
     @Override public void set_item(Value key, Value value) { data.put(key, value); }
 
-    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    @Override public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Dict.class,
       new String[] {"size"},
       new String[] {"clear"}
@@ -368,7 +368,7 @@ public final class Builtins {
 
     @Override public Value get_item(Value key) { return data.apply(key); }
 
-    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    @Override public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Index.class,
       new String[] {"size"},
       new String[] {"get", "update"}
@@ -388,13 +388,13 @@ public final class Builtins {
       this.name = name; this.attrs = attrs;
     }
 
-    public Value get_attr(String attr) {
+    @Override public Value get_attr(String attr) {
       var value = attrs.get(attr);
       if(value == null) { throw new Interpreter.AttrError(getClass(), attr); }
       return value;
     }
 
-    public String toString() { return "module " + name; }
+    @Override public String toString() { return "module " + name; }
     public static final Type TYPE = new Type("module", null, new HashMap<>(), new HashMap<>());
     @Override public Type type() { return TYPE; }
   }
@@ -405,7 +405,7 @@ public final class Builtins {
 
     public Value next() { return it.hasNext() ? it.next() : STOP; }
 
-    public final HashMap<String, Descriptor> attrs() { return ATTRS; }
+    @Override public final HashMap<String, Descriptor> attrs() { return ATTRS; }
     public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Iterator.class,
       new String[] {},
       new String[] {"next"}
@@ -429,7 +429,7 @@ public final class Builtins {
       assert attrs.isEmpty();
     }
 
-    public Value get_attr(String attr) {
+    @Override public Value get_attr(String attr) {
       var value = static_attrs.get(attr);
       if(value != null) { return value; }
       var desc = obj_attrs.get(attr);
@@ -438,9 +438,9 @@ public final class Builtins {
       return value;
     }
 
-    public String toString() { return "type " + name; }
+    @Override public String toString() { return "type " + name; }
 
-    public Value call(Value[] args, Map<String, Value> named_args) {
+    @Override public Value call(Value[] args, Map<String, Value> named_args) {
       if(constructor == null) {
         throw new Interpreter.InterpreterError("cannot create a new instance of type " + name);
       }

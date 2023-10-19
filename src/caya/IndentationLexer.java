@@ -10,9 +10,9 @@ import caya.Parser.Location;
 import caya.ParserHelper.Pos;
 
 public class IndentationLexer implements Parser.Lexer {
-  private record Token(int token) {}
+  public record Token(int token) {}
 
-  private sealed interface SignificantWhitespace {
+  public sealed interface SignificantWhitespace {
     record Enabled(int previous_indent) implements SignificantWhitespace {}
     record Disabled() implements SignificantWhitespace {}
     static final Disabled Disabled = new Disabled();

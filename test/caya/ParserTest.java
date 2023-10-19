@@ -1,12 +1,11 @@
 package caya;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class ParserTest {
@@ -172,53 +171,71 @@ public class ParserTest {
 
   private static Stream<Arguments> indentation() {
     return Stream.of(
-      arguments("1, 2,    \n"
-              + "3, 4     \n",
+      arguments("""
+                1, 2,
+                3, 4
+                """,
               "Seq[[Tuple[[Int[1], Int[2]]], Tuple[[Int[3], Int[4]]]]]"),
-      arguments("1, 2,    \n"
-              + "  3, 4   \n",
+      arguments("""
+                1, 2,
+                  3, 4
+                """,
               "Err[statements1]"),
-      arguments("  1, 2,    \n"
-              + "3, 4       \n",
+      arguments("""
+                  1, 2,
+                3, 4
+                """,
               "Seq[[Err[statements1], Tuple[[Int[3], Int[4]]]]]"),
-      arguments("  1    \n"
-              + "2;     \n"
-              + "3;     \n",
+      arguments("""
+                  1
+                2;
+                3;
+                """,
               "Seq[[Err[statements1], Int[2], Int[3]]]"),
-      arguments("1, (2,     \n"
-              + "  3), 4    \n",
+      arguments("""
+                1, (2,
+                  3), 4
+                """,
               "Tuple[[Int[1], Tuple[[Int[2], Int[3]]], Int[4]]]"),
-      arguments("class A    \n"
-              + "  test     \n"
-              + "  if X     \n"
-              + "    x      \n"
-              + "    a      \n"
-              + "  b        \n"
-              + "c          \n",
+      arguments("""
+                class A
+                  test
+                  if X
+                    x
+                    a
+                  b
+                c
+                """,
               "Seq[[Class[Ident[A], Seq[[Ident[test], If[Ident[X], Seq[[Ident[x], Ident[a]]]], Ident[b]]]], Ident[c]]]"),
-      arguments("class A              \n"
-              + "             test    \n"
-              + "             if X    \n"
-              + "              x      \n"
-              + "              a      \n"
-              + "             b       \n"
-              + "c                    \n",
+      arguments("""
+                class A
+                             test
+                             if X
+                              x
+                              a
+                             b
+                c
+                """,
               "Seq[[Class[Ident[A], Seq[[Ident[test], If[Ident[X], Seq[[Ident[x], Ident[a]]]], Ident[b]]]], Ident[c]]]"),
-      arguments("if a                                     \n"
-              + "             if b                        \n"
-              + "                        1 + (if c {      \n"
-              + "                                 x       \n"
-              + "                                 y       \n"
-              + "                        }; b) + 3        \n"
-              + "                        q                \n"
-              + "z                                        \n",
+      arguments("""
+                if a
+                             if b
+                                        1 + (if c {
+                                                 x
+                                                 y
+                                        }; b) + 3
+                                        q
+                z
+                """,
               "Seq[[If[Ident[a], Seq[[If[Ident[b], Seq[[Binary[Ident[+], Binary[Ident[+], Int[1], Seq[[If[Ident[c], Seq[[Ident[x], Ident[y]]]], Ident[b]]]], Int[3]], Ident[q]]]]]]], Ident[z]]]"),
-      arguments("if a   \n"
-              + "  x[   \n"
-              + " 0     \n"
-              + "]      \n"
-              + "  y    \n"
-              + "z      \n",
+      arguments("""
+                if a
+                  x[
+                 0
+                ]
+                  y
+                z
+                """,
               "Seq[[If[Ident[a], Seq[[Item[Ident[x], [Int[0]]], Ident[y]]]], Ident[z]]]")
     );
   }

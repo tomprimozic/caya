@@ -51,7 +51,7 @@ import caya.ParserHelper.Pos;
     errors.add(new ParsingError(ctx.getLocation(), lookahead, expected));
   }
 
-  record ParsingError(Parser.Location loc, Parser.SymbolKind lookahead, Parser.SymbolKind[] expected) {
+  public record ParsingError(Parser.Location loc, Parser.SymbolKind lookahead, Parser.SymbolKind[] expected) {
     @Override public String toString() { return "ParsingError[loc=" + loc + ", lookahead=" + lookahead + ", expected=" + Arrays.toString(expected) + "]"; }
   }
 

@@ -10,7 +10,7 @@ import caya.Parser.ParserError;
 import caya.Node.*;
 
 public class ParserHelper {
-  record Pos(long pos) {}
+  public record Pos(long pos) {}
 
   IndentationLexer lexer;
   public final ArrayList<Err> errors = new ArrayList<>();
@@ -72,14 +72,14 @@ public class ParserHelper {
     return new BigInteger(s.replaceAll("_", ""));
   }
 
-  List<Node> list() { return new ArrayList<Node>(); }
-  List<Node> list(Node node) { return new ArrayList<Node>(List.of(node)); }
-  List<Node> list(Node n1, Node n2) { return new ArrayList<Node>(List.of(n1, n2)); }
+  List<Node> list() { return new ArrayList<>(); }
+  List<Node> list(Node node) { return new ArrayList<>(List.of(node)); }
+  List<Node> list(Node n1, Node n2) { return new ArrayList<>(List.of(n1, n2)); }
   List<Node> list(List<Node> ns, Node n) { ns.add(n); return ns; }
   List<Node> list(Node n, List<Node> ns) { ns.add(0, n); return ns; }
   List<Node> list(List<Node> ns, Node n1, Node n2) { ns.add(n1); ns.add(n2); return ns; }
   List<Node> list(List<Node> ns1, List<Node> ns2) { ns1.addAll(ns2); return ns1; }
-  List<Node> list(Node n1, Node n2, Node n3) { return new ArrayList<Node>(List.of(n1, n2, n3)); }
+  List<Node> list(Node n1, Node n2, Node n3) { return new ArrayList<>(List.of(n1, n2, n3)); }
 
   Node error(Location loc, String error) { Err e = new Err(loc, error); errors.add(e); return e; }
 

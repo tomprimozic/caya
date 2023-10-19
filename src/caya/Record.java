@@ -16,7 +16,7 @@ public final class Record extends Value {
   public Record(HashMap<String, Value> fields) { this.fields = fields; }
   public Record(Map<String, Value> fields) { this.fields = HashMap.from(fields); }
 
-  public Value get_attr(String attr) {
+  @Override public Value get_attr(String attr) {
     try {
       return fields.apply(attr);
     } catch (NoSuchElementException e) {
@@ -24,7 +24,7 @@ public final class Record extends Value {
     }
   }
 
-  public String toString() {
+  @Override public String toString() {
     var s = new StringBuilder("{");
     var first = true;
     for(var entry : JavaConverters.asJava(fields).entrySet()) {
