@@ -124,7 +124,10 @@ public class InterpreterTest {
       arguments("i = ['a' = 1, 5 = 2, false = 4]; [i.size, i.get('a'), index.size(i), index.get(i, false)]", "[3, 1, 3, 4]"),
       arguments("typeof(false)", "type bool"),
       arguments("typeof(typeof(false))", "type type"),
-      arguments("[isinstance(1, int), isinstance(1, str), isinstance('s', str)]", "[true, false, true]")
+      arguments("[isinstance(1, int), isinstance(1, str), isinstance('s', str)]", "[true, false, true]"),
+      arguments("12348571234 * 90834714", "1121678936349017076"),
+      arguments("x=1;y=2;[x + (x = 2; y), x]", "[3, 2]"),
+      arguments("typeof(!{})", "type dict")
     );
   }
 

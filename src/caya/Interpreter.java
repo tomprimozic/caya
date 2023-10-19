@@ -273,6 +273,7 @@ public final class Interpreter {
         case Node.Seq(var __, var exprs) -> eval_seq(exprs, this.in_loop);
         case Node.Assign(var __, Node.Ident(var ___, var name), var expr) -> { assign(name, eval(expr)); yield NONE; }
         case Node.Assign(var __, Node.Attr(var ___, var obj, var attr), var expr) -> { eval(obj).set_attr(attr, eval(expr)); yield NONE; }
+        case Node.Assign(var __, Node.Item(var ___, var obj, var items), var expr) when items.size() == 1 -> { eval(obj).set_item(eval(items.get(0)), eval(expr)); yield NONE; }
         case Node.VarAssign(var __, Node.Ident(var ___, var name), var expr) -> { declare(name, eval(expr)); yield NONE; }
         case Node.Unary(var __, Node.Ident(var ___, var op), var expr) when op == "-" -> new Int(to_int(eval(expr)).negate());
         case Node.Binary(var __, Node.Ident(var ___, var op), var left, var right) when op == "+" -> new Int(to_int(eval(left)).add(to_int(eval(right))));

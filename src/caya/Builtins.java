@@ -334,6 +334,7 @@ public final class Builtins {
     public final LinkedHashMap<Value, Value> data;
     public Dict() { data = new LinkedHashMap<>(); }
     public Dict(Map<Value, Value> data) { this.data = new LinkedHashMap<>(data); }
+    @Override public String toString() { return "!" + data.toString(); }
 
     public Value get(Value key) { return data.get(key); }
     public Int size() { return new Int(data.size()); }
@@ -343,7 +344,7 @@ public final class Builtins {
     @Override public void set_item(Value key, Value value) { data.put(key, value); }
 
     public final HashMap<String, Descriptor> attrs() { return ATTRS; }
-    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(List.class,
+    public static final HashMap<String, Descriptor> ATTRS = BuiltinValue.resolve_attrs(Dict.class,
       new String[] {"size"},
       new String[] {"clear"}
     );
